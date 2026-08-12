@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Evaluación Post-Sismo · Conarca</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #f1f5f9;
+    color: #1e293b;
+    padding: 12px;
+    font-size: 15px;
+  }
+
+  .card {
+    background: white;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  /* HEADER */
+  .header {
+    background: #1e293b;
+    padding: 18px 20px 16px;
+    color: white;
+  }
+  .header h1 {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    line-height: 1.3;
+  }
+  .header p {
+    font-size: 11px;
+    color: #94a3b8;
+    margin-top: 3px;
+  }
+  .conarca-tag {
+    display: inline-block;
+    background: #334155;
+    color: #cbd5e1;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 20px;
+    margin-bottom: 8px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  /* SECCIONES */
+  .section {
+    padding: 18px 16px;
+    border-bottom: 1px solid #f1f5f9;
+  }
+  .section-title {
+    font-size: 10px;
+    font-weight: 700;
+    color: #94a3b8;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+
+  /* INPUTS */
+  .field { margin-bottom: 12px; }
+  .field label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: #64748b;
+    margin-bottom: 5px;
+  }
+  .field input, .field select, .field textarea {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 16px; /* evita zoom en iOS */
+    font-family: inherit;
+    color: #1e293b;
+    background: #f8fafc;
+    appearance: none;
+    -webkit-appearance: none;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus {
+    border-color: #334155;
+    background: white;
+  }
+  .field textarea { resize: none; font-size: 15px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  /* ITEMS DE DAÑO */
+  .dano-item {
+    background: #f8fafc;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 8px;
+    transition: border-color 0.15s;
+  }
+  .dano-item.activo-verde  { border-color: #16a34a; background: #f0fdf4; }
+  .dano-item.activo-amarillo { border-color: #d97706; background: #fffbeb; }
+  .dano-item.activo-rojo   { border-color: #dc2626; background: #fef2f2; }
+
+  .dano-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .dano-nombre {
+    font-size: 13px;
+    font-weight: 700;
+    color: #1e293b;
+    flex: 1;
+  }
+  .dano-desc {
+    font-size: 11px;
+    color: #94a3b8;
+    margin-top: 2px;
+  }
+  .badge-est {
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 20px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .badge-est.critico { background: #fee2e2; color: #dc2626; }
+  .badge-est.no-critico { background: #f1f5f9; color: #94a3b8; }
+
+  .dano-botones {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 6px;
+  }
+  .btn-dano {
+    padding: 10px 4px;
+    border-radius: 8px;
+    border: 1.5px solid #e2e8f0;
+    background: white;
+    font-size: 12px;
+    font-weight: 600;
+    color: #64748b;
+    cursor: pointer;
+    text-align: center;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 2px;
+    transition: all 0.12s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn-dano .icono { font-size: 16px; }
+  .btn-dano.sel-verde   { background: #16a34a; border-color: #16a34a; color: white; }
+  .btn-dano.sel-amarillo { background: #d97706; border-color: #d97706; color: white; }
+  .btn-dano.sel-rojo    { background: #dc2626; border-color: #dc2626; color: white; }
+
+  /* MEDIDAS CHECKBOX */
+  .check-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: #f8fafc;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    margin-bottom: 8px;
+    cursor: pointer;
+  }
+  .check-item input[type=checkbox] {
+    width: 22px;
+    height: 22px;
+    min-width: 22px;
+    cursor: pointer;
+    accent-color: #1e293b;
+  }
+  .check-item span { font-size: 13px; color: #334155; line-height: 1.3; }
+
+  /* CONCEPTO */
+  .concepto-box {
+    margin: 0 16px 16px;
+    border-radius: 14px;
+    padding: 18px 16px;
+    text-align: center;
+    background: #f1f5f9;
+    border: 2px solid #e2e8f0;
+    transition: all 0.3s;
+  }
+  .concepto-box.verde   { background: #f0fdf4; border-color: #16a34a; }
+  .concepto-box.amarillo { background: #fffbeb; border-color: #d97706; }
+  .concepto-box.rojo    { background: #fef2f2; border-color: #dc2626; }
+
+  .concepto-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: #94a3b8;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .concepto-resultado {
+    font-size: 16px;
+    font-weight: 800;
+    color: #64748b;
+    padding: 12px;
+    border-radius: 10px;
+    background: #e2e8f0;
+    margin-bottom: 8px;
+    transition: all 0.3s;
+  }
+  .concepto-resultado.verde   { background: #16a34a; color: white; }
+  .concepto-resultado.amarillo { background: #d97706; color: white; }
+  .concepto-resultado.rojo    { background: #dc2626; color: white; }
+  .concepto-desc { font-size: 12px; color: #64748b; line-height: 1.5; }
+
+  /* BOTONES ACCIÓN */
+  .acciones {
+    padding: 4px 16px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .btn-accion {
+    width: 100%;
+    padding: 16px;
+    border-radius: 12px;
+    border: none;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    min-height: 52px;
+    -webkit-tap-highlight-color: transparent;
+    transition: opacity 0.1s;
+  }
+  .btn-accion:active { opacity: 0.85; }
+  .btn-procesar { background: #1e293b; color: white; }
+  .btn-pdf { background: #16a34a; color: white; }
+
+  /* CLAUSULA */
+  .clausula {
+    margin: 0 16px 20px;
+    padding: 12px;
+    background: #f8fafc;
+    border-radius: 10px;
+    font-size: 11px;
+    color: #94a3b8;
+    line-height: 1.6;
+  }
+  .clausula strong { color: #64748b; }
+
+  /* PRINT */
+  @media print {
+    body { background: white; padding: 0; }
+    .acciones { display: none; }
+    .card { box-shadow: none; border-radius: 0; }
+    .btn-dano { border: 1px solid #ccc; }
+    .btn-dano.sel-verde   { background: #16a34a !important; color: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .btn-dano.sel-amarillo { background: #d97706 !important; color: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .btn-dano.sel-rojo    { background: #dc2626 !important; color: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .concepto-resultado.verde   { background: #16a34a !important; color: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .concepto-resultado.amarillo { background: #d97706 !important; color: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .concepto-resultado.rojo    { background: #dc2626 !important; color: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+
+<div class="card" id="form-container">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="conarca-tag">Conarca SAS</div>
+    <h1>EVALUACIÓN VISUAL RÁPIDA<br>POST-SISMO</h1>
+    <p>Habitabilidad y Riesgo · Herramienta de campo</p>
+  </div>
+
+  <!-- SECCIÓN 1: DATOS -->
+  <div class="section">
+    <div class="section-title">1 · Datos de la Inspección</div>
+    <div class="grid2">
+      <div class="field">
+        <label>Fecha y Hora</label>
+        <input type="datetime-local" id="fecha">
+      </div>
+      <div class="field">
+        <label>N° Pisos</label>
+        <input type="number" id="numPisos" placeholder="Ej: 5">
+      </div>
+    </div>
+    <div class="field">
+      <label>Evaluador</label>
+      <input type="text" id="evaluador" value="Andrés Pérez · Conarca SAS">
+    </div>
+    <div class="field">
+      <label>Edificio / Propietario</label>
+      <input type="text" id="nombreEdificio" placeholder="Ej: Conjunto Cantabria / Apto 302">
+    </div>
+    <div class="field">
+      <label>Dirección</label>
+      <input type="text" id="direccion" placeholder="Ej: Cra 50 #12-34, Medellín">
+    </div>
+    <div class="field">
+      <label>Sistema Estructural</label>
+      <select id="sistemaEstructural">
+        <option>Pórticos de Concreto Reforzado</option>
+        <option>Sistema Mixto (Pórticos + Muros Cortante)</option>
+        <option>Mampostería Estructural / Confinada</option>
+        <option>Estructura Metálica</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- SECCIÓN 2: MATRIZ -->
+  <div class="section">
+    <div class="section-title">2 · Matriz de Daños</div>
+    <div id="checklist-items"></div>
+  </div>
+
+  <!-- SECCIÓN 3: MEDIDAS -->
+  <div class="section">
+    <div class="section-title">3 · Medidas y Observaciones</div>
+    <p style="font-size:12px;color:#64748b;margin-bottom:10px;font-weight:600;">Medidas inmediatas requeridas:</p>
+    <label class="check-item">
+      <input type="checkbox" class="medida" value="Acordonar circulaciones vulnerables">
+      <span>Acordonar circulaciones vulnerables</span>
+    </label>
+    <label class="check-item">
+      <input type="checkbox" class="medida" value="Retiro de mampostería o revoque suelto">
+      <span>Retiro de mampostería / revoque suelto</span>
+    </label>
+    <label class="check-item">
+      <input type="checkbox" class="medida" value="Verificar intradós de losa">
+      <span>Verificar intradós de losa</span>
+    </label>
+    <label class="check-item">
+      <input type="checkbox" class="medida" value="Mantenimiento de junta de dilatación">
+      <span>Mantenimiento de junta de dilatación</span>
+    </label>
+    <div class="field" style="margin-top:12px;">
+      <label>Notas de campo</label>
+      <textarea id="observaciones" rows="3" placeholder="Ubicación de fisuras, detalles de pantallas, juntas en L..."></textarea>
+    </div>
+  </div>
+
+  <!-- CONCEPTO -->
+  <div class="concepto-box" id="concepto-box">
+    <div class="concepto-label">Concepto de Habitabilidad</div>
+    <div class="concepto-resultado" id="concepto-resultado">PENDIENTE DE EVALUACIÓN</div>
+    <p class="concepto-desc" id="concepto-desc">Complete la matriz para generar el concepto.</p>
+  </div>
+
+  <!-- BOTONES -->
+  <div class="acciones">
+    <button class="btn-accion btn-procesar" onclick="calcularConcepto()">✓ Procesar Concepto</button>
+    <button class="btn-accion btn-pdf" onclick="generarPDF()">↓ Generar Informe PDF</button>
+  </div>
+
+  <!-- CLÁUSULA -->
+  <div class="clausula">
+    <strong>Limitación de responsabilidad:</strong> Evaluación visual y cualitativa de carácter preliminar. No constituye estudio patológico estructural, ensayo de materiales ni dictamen pericial para efectos de indemnizaciones de seguro. Se limita a condiciones visibles al momento de la visita.
+  </div>
+
+</div>
+
+<script>
+const items = [
+  { id:'suelo',        nombre:'Terreno / Cimentación',       desc:'Asentamientos, licuación, grietas en piso',         critico:true  },
+  { id:'columnas',     nombre:'Columnas',                    desc:'Fisuras 45°, concreto triturado, acero expuesto',   critico:true  },
+  { id:'vigas',        nombre:'Vigas y Nodos',               desc:'Grietas en apoyos, deflexión permanente',           critico:true  },
+  { id:'pantallas',    nombre:'Pantallas / Muros Cortante',  desc:'Grietas en X, aplastamiento',                       critico:true  },
+  { id:'losas',        nombre:'Losas y Placas',              desc:'Escalonamientos o fisuras continuas',               critico:false },
+  { id:'escaleras',    nombre:'Escaleras / Evacuación',      desc:'Daño en apoyos o peldaños colapsados',             critico:true  },
+  { id:'muros_no_est', nombre:'Muros No Estructurales',      desc:'Fisuras profundas, abombamiento, desprendimiento',  critico:false },
+  { id:'elementos_alt',nombre:'Elementos en Altura',         desc:'Dinteles, balcones, parapetos, revoques sueltos',   critico:false },
+  { id:'juntas',       nombre:'Juntas de Dilatación',        desc:'Trabajo en L, baldosín desprendido',                critico:false },
+];
+
+const estado = {};
+items.forEach(i => estado[i.id] = 'Nulo');
+
+const container = document.getElementById('checklist-items');
+items.forEach(item => {
+  container.innerHTML += `
+    <div class="dano-item activo-verde" id="item-${item.id}">
+      <div class="dano-header">
+        <div>
+          <div class="dano-nombre">${item.nombre}</div>
+          <div class="dano-desc">${item.desc}</div>
+        </div>
+        <span class="badge-est ${item.critico ? 'critico' : 'no-critico'}">${item.critico ? 'Estructural' : 'No estructural'}</span>
+      </div>
+      <div class="dano-botones">
+        <button class="btn-dano sel-verde" id="b-${item.id}-Nulo" onclick="setDano('${item.id}','Nulo')">
+          <span class="icono">✅</span>Sin Daño
+        </button>
+        <button class="btn-dano" id="b-${item.id}-Menor" onclick="setDano('${item.id}','Menor')">
+          <span class="icono">⚠️</span>Leve
+        </button>
+        <button class="btn-dano" id="b-${item.id}-Severo" onclick="setDano('${item.id}','Severo')">
+          <span class="icono">🔴</span>Severo
+        </button>
+      </div>
+    </div>`;
+});
+
+function setDano(id, valor) {
+  estado[id] = valor;
+  const fila = document.getElementById('item-' + id);
+  fila.classList.remove('activo-verde','activo-amarillo','activo-rojo');
+  ['Nulo','Menor','Severo'].forEach(v => {
+    const b = document.getElementById('b-' + id + '-' + v);
+    b.classList.remove('sel-verde','sel-amarillo','sel-rojo');
+  });
+  if (valor === 'Nulo')   { document.getElementById('b-'+id+'-Nulo').classList.add('sel-verde');    fila.classList.add('activo-verde'); }
+  if (valor === 'Menor')  { document.getElementById('b-'+id+'-Menor').classList.add('sel-amarillo'); fila.classList.add('activo-amarillo'); }
+  if (valor === 'Severo') { document.getElementById('b-'+id+'-Severo').classList.add('sel-rojo');   fila.classList.add('activo-rojo'); }
+  calcularConcepto();
+}
+
+// Fecha automática
+const ahora = new Date();
+const pad = n => String(n).padStart(2,'0');
+document.getElementById('fecha').value =
+  `${ahora.getFullYear()}-${pad(ahora.getMonth()+1)}-${pad(ahora.getDate())}T${pad(ahora.getHours())}:${pad(ahora.getMinutes())}`;
+
+function calcularConcepto() {
+  let sevEst=false, sevNoEst=false, menor=false;
+  items.forEach(i => {
+    const v = estado[i.id];
+    if (v==='Severo') { if(i.critico) sevEst=true; else sevNoEst=true; }
+    if (v==='Menor') menor=true;
+  });
+
+  const res  = document.getElementById('concepto-resultado');
+  const desc = document.getElementById('concepto-desc');
+  const box  = document.getElementById('concepto-box');
+
+  res.className = 'concepto-resultado';
+  box.className = 'concepto-box';
+
+  if (sevEst) {
+    res.classList.add('rojo'); box.classList.add('rojo');
+    res.innerText = '🔴  INHABITABLE — RIESGO ALTO';
+    desc.innerText = 'Daño severo en elementos estructurales. Evacuación preventiva e inspección especializada urgente.';
+  } else if (sevNoEst || menor) {
+    res.classList.add('amarillo'); box.classList.add('amarillo');
+    res.innerText = '🟡  HABITABLE CON RESTRICCIONES';
+    desc.innerText = 'Estructura principal sana. Existen riesgos no estructurales que deben acordonarse o repararse antes del uso normal.';
+  } else {
+    res.classList.add('verde'); box.classList.add('verde');
+    res.innerText = '🟢  HABITABLE';
+    desc.innerText = 'Sin daños que comprometan la seguridad de los ocupantes. Apta para uso normal.';
+  }
+}
+
+function generarPDF() {
+  calcularConcepto();
+  window.print();
+}
+</script>
+</body>
+</html>
