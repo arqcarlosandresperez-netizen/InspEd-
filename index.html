@@ -3,475 +3,1016 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Evaluación Post-Sismo · Conarca</title>
+<title>Inspección Post-Sismo · C.A. Pérez</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#eef0f4;color:#1a2332;padding:10px;font-size:15px}
 
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    background: #f1f5f9;
-    color: #1e293b;
-    padding: 12px;
-    font-size: 15px;
-  }
+.card{background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.12);max-width:640px;margin:0 auto}
+.header{background:linear-gradient(135deg,#1a2332 0%,#2d3f55 100%);padding:16px 18px 14px;color:#fff}
+.tag{display:inline-block;background:rgba(255,255,255,.12);color:#94a3b8;font-size:9px;font-weight:700;padding:2px 9px;border-radius:20px;margin-bottom:7px;letter-spacing:1px;text-transform:uppercase}
+.header h1{font-size:14px;font-weight:800;line-height:1.3}
+.header-sub{font-size:10px;color:#64748b;margin-top:3px}
 
-  .card {
-    background: white;
-    border-radius: 18px;
-    overflow: hidden;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.1);
-    max-width: 600px;
-    margin: 0 auto;
-  }
+/* API KEY SETUP */
+.api-setup{padding:14px;background:#fffbeb;border-bottom:2px solid #fbbf24}
+.api-setup p{font-size:12px;color:#92400e;margin-bottom:8px;font-weight:600}
+.api-row{display:flex;gap:8px}
+.api-input{flex:1;padding:10px 12px;border:1.5px solid #fbbf24;border-radius:9px;font-size:14px;font-family:inherit;background:#fff;outline:none}
+.api-input:focus{border-color:#d97706}
+.api-btn{padding:10px 14px;background:#d97706;color:#fff;border:none;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
+.api-ok{font-size:11px;color:#16a34a;font-weight:700;margin-top:5px;display:none}
 
-  /* HEADER */
-  .header {
-    background: #1e293b;
-    padding: 18px 20px 16px;
-    color: white;
-  }
-  .header h1 {
-    font-size: 15px;
-    font-weight: 700;
-    letter-spacing: 0.3px;
-    line-height: 1.3;
-  }
-  .header p {
-    font-size: 11px;
-    color: #94a3b8;
-    margin-top: 3px;
-  }
-  .conarca-tag {
-    display: inline-block;
-    background: #334155;
-    color: #cbd5e1;
-    font-size: 10px;
-    font-weight: 600;
-    padding: 2px 8px;
-    border-radius: 20px;
-    margin-bottom: 8px;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-  }
+.prog-wrap{padding:10px 16px 4px;background:#f8fafc;border-bottom:1px solid #eef0f4}
+.prog-bar{height:5px;background:#e2e8f0;border-radius:3px;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,#1a2332,#3b82f6);border-radius:3px;transition:width .4s;width:0%}
+.prog-txt{font-size:10px;color:#94a3b8;margin-top:4px;text-align:right}
 
-  /* SECCIONES */
-  .section {
-    padding: 18px 16px;
-    border-bottom: 1px solid #f1f5f9;
-  }
-  .section-title {
-    font-size: 10px;
-    font-weight: 700;
-    color: #94a3b8;
-    letter-spacing: 1.2px;
-    text-transform: uppercase;
-    margin-bottom: 14px;
-  }
+.tabs{display:flex;background:#f8fafc;border-bottom:2px solid #eef0f4;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:1;min-width:0;padding:11px 4px;text-align:center;font-size:10px;font-weight:700;color:#94a3b8;cursor:pointer;border-bottom:3px solid transparent;transition:all .15s;white-space:nowrap;letter-spacing:.3px;text-transform:uppercase}
+.tab.active{color:#1a2332;border-bottom-color:#1a2332;background:#fff}
 
-  /* INPUTS */
-  .field { margin-bottom: 12px; }
-  .field label {
-    display: block;
-    font-size: 12px;
-    font-weight: 600;
-    color: #64748b;
-    margin-bottom: 5px;
-  }
-  .field input, .field select, .field textarea {
-    width: 100%;
-    padding: 12px 14px;
-    border: 1.5px solid #e2e8f0;
-    border-radius: 10px;
-    font-size: 16px; /* evita zoom en iOS */
-    font-family: inherit;
-    color: #1e293b;
-    background: #f8fafc;
-    appearance: none;
-    -webkit-appearance: none;
-    outline: none;
-    transition: border-color 0.15s;
-  }
-  .field input:focus, .field select:focus, .field textarea:focus {
-    border-color: #334155;
-    background: white;
-  }
-  .field textarea { resize: none; font-size: 15px; }
-  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.tab-content{display:none}
+.tab-content.active{display:block}
+.section{padding:14px;border-bottom:1px solid #f1f5f9}
+.sec-title{font-size:10px;font-weight:700;color:#94a3b8;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.sec-num{background:#1a2332;color:#fff;width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0}
 
-  /* ITEMS DE DAÑO */
-  .dano-item {
-    background: #f8fafc;
-    border: 1.5px solid #e2e8f0;
-    border-radius: 12px;
-    padding: 12px;
-    margin-bottom: 8px;
-    transition: border-color 0.15s;
-  }
-  .dano-item.activo-verde  { border-color: #16a34a; background: #f0fdf4; }
-  .dano-item.activo-amarillo { border-color: #d97706; background: #fffbeb; }
-  .dano-item.activo-rojo   { border-color: #dc2626; background: #fef2f2; }
+.field{margin-bottom:10px}
+.field label{display:block;font-size:12px;font-weight:600;color:#64748b;margin-bottom:4px}
+.field input,.field select,.field textarea{width:100%;padding:11px 13px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:16px;font-family:inherit;color:#1a2332;background:#f8fafc;-webkit-appearance:none;outline:none;transition:border-color .15s}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:#1a2332;background:#fff}
+.field textarea{resize:none;font-size:15px;line-height:1.5}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 
-  .dano-header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 8px;
-    margin-bottom: 10px;
-  }
-  .dano-nombre {
-    font-size: 13px;
-    font-weight: 700;
-    color: #1e293b;
-    flex: 1;
-  }
-  .dano-desc {
-    font-size: 11px;
-    color: #94a3b8;
-    margin-top: 2px;
-  }
-  .badge-est {
-    font-size: 9px;
-    font-weight: 700;
-    padding: 2px 7px;
-    border-radius: 20px;
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
-  .badge-est.critico { background: #fee2e2; color: #dc2626; }
-  .badge-est.no-critico { background: #f1f5f9; color: #94a3b8; }
+.grupo{font-size:10px;font-weight:800;color:#475569;background:#f1f5f9;padding:6px 10px;border-radius:7px;margin:4px 0 8px;letter-spacing:.5px;text-transform:uppercase}
 
-  .dano-botones {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 6px;
-  }
-  .btn-dano {
-    padding: 10px 4px;
-    border-radius: 8px;
-    border: 1.5px solid #e2e8f0;
-    background: white;
-    font-size: 12px;
-    font-weight: 600;
-    color: #64748b;
-    cursor: pointer;
-    text-align: center;
-    min-height: 44px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    gap: 2px;
-    transition: all 0.12s;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .btn-dano .icono { font-size: 16px; }
-  .btn-dano.sel-verde   { background: #16a34a; border-color: #16a34a; color: white; }
-  .btn-dano.sel-amarillo { background: #d97706; border-color: #d97706; color: white; }
-  .btn-dano.sel-rojo    { background: #dc2626; border-color: #dc2626; color: white; }
+.di{background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:13px;padding:11px 12px;margin-bottom:8px;transition:border-color .2s,background .2s}
+.di.av{border-color:#16a34a;background:#f0fdf4}
+.di.aa{border-color:#d97706;background:#fffbeb}
+.di.ar{border-color:#dc2626;background:#fef2f2}
+.di-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:9px}
+.di-nombre{font-size:13px;font-weight:700;color:#1a2332;flex:1;line-height:1.3}
+.di-desc{font-size:11px;color:#94a3b8;margin-top:2px;line-height:1.4}
+.badge{font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;white-space:nowrap;flex-shrink:0}
+.bc{background:#fee2e2;color:#dc2626}.bnc{background:#f1f5f9;color:#94a3b8}
+.di-bots{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-bottom:8px}
+.bd{padding:8px 4px;border-radius:8px;border:1.5px solid #e2e8f0;background:#fff;font-size:11px;font-weight:700;color:#64748b;cursor:pointer;text-align:center;min-height:44px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2px;transition:all .12s}
+.bd .ico{font-size:14px}
+.bd.sv{background:#16a34a;border-color:#16a34a;color:#fff}
+.bd.sa{background:#d97706;border-color:#d97706;color:#fff}
+.bd.sr{background:#dc2626;border-color:#dc2626;color:#fff}
 
-  /* MEDIDAS CHECKBOX */
-  .check-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px;
-    background: #f8fafc;
-    border: 1.5px solid #e2e8f0;
-    border-radius: 10px;
-    margin-bottom: 8px;
-    cursor: pointer;
-  }
-  .check-item input[type=checkbox] {
-    width: 22px;
-    height: 22px;
-    min-width: 22px;
-    cursor: pointer;
-    accent-color: #1e293b;
-  }
-  .check-item span { font-size: 13px; color: #334155; line-height: 1.3; }
+/* FOTOS */
+.foto-area{margin-top:6px}
+.foto-btn{width:100%;padding:9px 12px;border-radius:9px;border:1.5px dashed #cbd5e1;background:transparent;font-size:12px;font-weight:600;color:#64748b;cursor:pointer;display:flex;align-items:center;gap:7px;transition:all .15s}
+.foto-btn:active{background:#f1f5f9}
+.foto-previews{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.foto-thumb{position:relative;width:80px;height:80px;border-radius:9px;overflow:hidden;border:1.5px solid #e2e8f0;flex-shrink:0}
+.foto-thumb img{width:100%;height:100%;object-fit:cover}
+.foto-del{position:absolute;top:2px;right:2px;background:rgba(0,0,0,.6);color:#fff;border:none;border-radius:50%;width:20px;height:20px;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1}
+.foto-analisis{margin-top:8px;padding:9px 11px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:9px;font-size:11px;color:#0c4a6e;line-height:1.5;display:none}
+.foto-analisis.show{display:block}
+.fa-titulo{font-weight:700;margin-bottom:4px;font-size:11px}
+.btn-analizar{width:100%;padding:9px;border-radius:9px;border:none;background:#0ea5e9;color:#fff;font-size:12px;font-weight:700;cursor:pointer;margin-top:6px;display:none}
+.btn-analizar.show{display:flex;align-items:center;justify-content:center;gap:6px}
+.btn-analizar:disabled{opacity:.6;cursor:not-allowed}
 
-  /* CONCEPTO */
-  .concepto-box {
-    margin: 0 16px 16px;
-    border-radius: 14px;
-    padding: 18px 16px;
-    text-align: center;
-    background: #f1f5f9;
-    border: 2px solid #e2e8f0;
-    transition: all 0.3s;
-  }
-  .concepto-box.verde   { background: #f0fdf4; border-color: #16a34a; }
-  .concepto-box.amarillo { background: #fffbeb; border-color: #d97706; }
-  .concepto-box.rojo    { background: #fef2f2; border-color: #dc2626; }
+/* GUÍA */
+.btn-guia{width:100%;padding:8px 12px;border-radius:8px;border:1.5px dashed #cbd5e1;background:transparent;font-size:11px;font-weight:600;color:#64748b;cursor:pointer;text-align:left;display:flex;align-items:center;gap:6px;transition:all .15s;margin-top:4px}
+.btn-guia .arrow{margin-left:auto;font-size:10px;transition:transform .2s}
+.btn-guia.open .arrow{transform:rotate(180deg)}
+.guia-panel{display:none;margin-top:6px;border-radius:10px;overflow:hidden;border:1px solid #e2e8f0}
+.guia-panel.show{display:block}
+.guia-header{background:#1a2332;color:#fff;padding:8px 12px;font-size:11px;font-weight:700}
+.guia-row{display:grid;grid-template-columns:28px 1fr auto auto;gap:6px 8px;align-items:start;padding:8px 11px;border-bottom:1px solid #f1f5f9;font-size:11px}
+.guia-row:last-child{border-bottom:none}
+.guia-row:nth-child(even){background:#fafbfc}
+.guia-nombre{font-weight:700;color:#1a2332;font-size:11px}
+.guia-det{color:#64748b;font-size:10px;margin-top:1px}
+.gt{font-size:9px;font-weight:700;padding:2px 6px;border-radius:12px;white-space:nowrap}
+.gt-r{background:#fee2e2;color:#dc2626}
+.gt-a{background:#fef3c7;color:#92400e}
+.gt-v{background:#dcfce7;color:#16a34a}
+.guia-regla{background:#1e3a5f;color:#e2e8f0;padding:8px 12px;font-size:10px;line-height:1.6}
+.guia-regla strong{color:#93c5fd}
 
-  .concepto-label {
-    font-size: 10px;
-    font-weight: 700;
-    color: #94a3b8;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    margin-bottom: 10px;
-  }
-  .concepto-resultado {
-    font-size: 16px;
-    font-weight: 800;
-    color: #64748b;
-    padding: 12px;
-    border-radius: 10px;
-    background: #e2e8f0;
-    margin-bottom: 8px;
-    transition: all 0.3s;
-  }
-  .concepto-resultado.verde   { background: #16a34a; color: white; }
-  .concepto-resultado.amarillo { background: #d97706; color: white; }
-  .concepto-resultado.rojo    { background: #dc2626; color: white; }
-  .concepto-desc { font-size: 12px; color: #64748b; line-height: 1.5; }
+.ci{display:flex;align-items:center;gap:11px;padding:11px 12px;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;margin-bottom:7px;cursor:pointer}
+.ci input[type=checkbox]{width:22px;height:22px;min-width:22px;cursor:pointer;accent-color:#1a2332}
+.ci span{font-size:13px;color:#334155;line-height:1.3}
 
-  /* BOTONES ACCIÓN */
-  .acciones {
-    padding: 4px 16px 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-  .btn-accion {
-    width: 100%;
-    padding: 16px;
-    border-radius: 12px;
-    border: none;
-    font-size: 15px;
-    font-weight: 700;
-    cursor: pointer;
-    font-family: inherit;
-    min-height: 52px;
-    -webkit-tap-highlight-color: transparent;
-    transition: opacity 0.1s;
-  }
-  .btn-accion:active { opacity: 0.85; }
-  .btn-procesar { background: #1e293b; color: white; }
-  .btn-pdf { background: #16a34a; color: white; }
+/* CONCEPTO */
+.concepto-wrap{padding:14px}
+.cbox{border-radius:14px;padding:16px;text-align:center;background:#f1f5f9;border:2px solid #e2e8f0;transition:all .3s}
+.cbox.cv{background:#f0fdf4;border-color:#16a34a}
+.cbox.ca{background:#fffbeb;border-color:#d97706}
+.cbox.cr{background:#fef2f2;border-color:#dc2626}
+.clabel{font-size:10px;font-weight:700;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px}
+.cres{font-size:15px;font-weight:800;color:#64748b;padding:13px;border-radius:10px;background:#e2e8f0;margin-bottom:8px;transition:all .3s;line-height:1.3}
+.cres.cv{background:#16a34a;color:#fff}
+.cres.ca{background:#d97706;color:#fff}
+.cres.cr{background:#dc2626;color:#fff}
+.cdesc{font-size:12px;color:#64748b;line-height:1.5}
+.cdanos{margin-top:12px;text-align:left}
+.cdanos-t{font-size:11px;font-weight:700;color:#64748b;margin-bottom:6px}
+.chip{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:20px;font-size:10px;font-weight:600;margin:2px}
+.chip-r{background:#fee2e2;color:#dc2626}
+.chip-a{background:#fef3c7;color:#92400e}
 
-  /* CLAUSULA */
-  .clausula {
-    margin: 0 16px 20px;
-    padding: 12px;
-    background: #f8fafc;
-    border-radius: 10px;
-    font-size: 11px;
-    color: #94a3b8;
-    line-height: 1.6;
-  }
-  .clausula strong { color: #64748b; }
+/* LOADING OVERLAY */
+.loading{display:none;position:fixed;inset:0;background:rgba(26,35,50,.7);z-index:999;align-items:center;justify-content:center;flex-direction:column;gap:12px}
+.loading.show{display:flex}
+.loading-box{background:#fff;border-radius:16px;padding:24px 28px;text-align:center;max-width:280px}
+.loading-spinner{font-size:32px;animation:spin 1s linear infinite;display:block;margin-bottom:10px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-txt{font-size:14px;font-weight:700;color:#1a2332}
+.loading-sub{font-size:12px;color:#64748b;margin-top:4px}
 
-  /* PRINT */
-  @media print {
-    body { background: white; padding: 0; }
-    .acciones { display: none; }
-    .card { box-shadow: none; border-radius: 0; }
-    .btn-dano { border: 1px solid #ccc; }
-    .btn-dano.sel-verde   { background: #16a34a !important; color: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .btn-dano.sel-amarillo { background: #d97706 !important; color: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .btn-dano.sel-rojo    { background: #dc2626 !important; color: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .concepto-resultado.verde   { background: #16a34a !important; color: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .concepto-resultado.amarillo { background: #d97706 !important; color: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .concepto-resultado.rojo    { background: #dc2626 !important; color: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  }
+.acciones{padding:4px 14px 14px;display:flex;flex-direction:column;gap:9px}
+.btn-a{width:100%;padding:15px;border-radius:12px;border:none;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;min-height:52px;transition:opacity .1s}
+.btn-a:active{opacity:.82}
+.btn-dark{background:#1a2332;color:#fff}
+.btn-green{background:#16a34a;color:#fff}
+.btn-slate{background:#475569;color:#fff}
+.btn-ai{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff}
+
+.clausula{margin:0 14px 18px;padding:11px;background:#f8fafc;border-radius:10px;font-size:11px;color:#94a3b8;line-height:1.6}
+.clausula strong{color:#64748b}
+
+/* ============ PRINT ============ */
+@media print{
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+  body{background:#fff;padding:0;margin:0}
+  .card{display:none!important}
+  .loading{display:none!important}
+  #pdf-report{display:block!important}
+}
+
+/* ============ PDF ============ */
+#pdf-report{
+  display:none;
+  font-family:Arial,Helvetica,sans-serif;
+  padding:22px 26px;
+  color:#1a2332;
+  max-width:780px;
+  margin:0 auto;
+  font-size:10pt;
+  line-height:1.5;
+}
+.pdf-header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #1a2332;padding-bottom:12px;margin-bottom:14px}
+.pdf-header-left h1{font-size:13pt;font-weight:900;color:#1a2332;line-height:1.2}
+.pdf-header-left p{font-size:8.5pt;color:#64748b;margin-top:3px}
+.pdf-header-right{text-align:right;font-size:8pt;color:#64748b;line-height:1.6}
+.pdf-header-right strong{display:block;font-size:10pt;color:#1a2332;font-weight:900}
+.pdf-mp{font-size:7.5pt;color:#94a3b8}
+
+.pdf-cbox{padding:14px 16px;border-radius:10px;text-align:center;margin-bottom:16px}
+.pdf-cbox.cv{background:#16a34a;color:#fff}
+.pdf-cbox.ca{background:#d97706;color:#fff}
+.pdf-cbox.cr{background:#dc2626;color:#fff}
+.pdf-cbox h2{font-size:16pt;font-weight:900;margin-bottom:4px}
+.pdf-cbox p{font-size:9.5pt;opacity:.92;line-height:1.4}
+
+.pdf-seccion{margin-bottom:14px}
+.pdf-seccion h3{font-size:9pt;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.8px;border-bottom:1px solid #e2e8f0;padding-bottom:4px;margin-bottom:8px}
+
+.pdf-g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.pdf-box{border:1px solid #e2e8f0;border-radius:8px;padding:10px 12px}
+.pdf-box h3{font-size:8pt;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.7px;margin-bottom:6px;border-bottom:none;padding-bottom:0}
+.pdf-box p,.pdf-box li{font-size:9.5pt;color:#334155;line-height:1.5}
+.pdf-box ul{padding-left:14px}
+
+/* NARRATIVA IA */
+.pdf-narrativa{background:#f8fafc;border-left:4px solid #1a2332;padding:12px 14px;border-radius:0 8px 8px 0;margin-bottom:14px;font-size:9.5pt;line-height:1.7;color:#1a2332}
+.pdf-narrativa h3{font-size:8pt;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px}
+
+.pdf-tabla{width:100%;border-collapse:collapse;margin-bottom:14px;font-size:9pt}
+.pdf-tabla th{background:#1a2332;color:#fff;padding:7px 9px;text-align:left;font-size:8pt}
+.pdf-tabla td{padding:6px 9px;border-bottom:1px solid #f1f5f9;vertical-align:top}
+.pdf-tabla tr:nth-child(even) td{background:#f8fafc}
+.ptag{display:inline-block;padding:2px 7px;border-radius:11px;font-size:7.5pt;font-weight:700}
+.ptag.cv{background:#dcfce7;color:#15803d}
+.ptag.ca{background:#fef3c7;color:#92400e}
+.ptag.cr{background:#fee2e2;color:#dc2626}
+.ptag.est{background:#fee2e2;color:#dc2626}
+.ptag.noest{background:#f1f5f9;color:#64748b}
+
+/* FOTOS EN PDF */
+.pdf-fotos{margin-bottom:14px}
+.pdf-fotos h3{font-size:8pt;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.7px;border-bottom:1px solid #e2e8f0;padding-bottom:4px;margin-bottom:10px}
+.pdf-foto-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.pdf-foto-item img{width:100%;height:120px;object-fit:cover;border-radius:7px;border:1px solid #e2e8f0}
+.pdf-foto-cap{font-size:7.5pt;color:#64748b;margin-top:3px;text-align:center}
+
+.pdf-firma{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin:16px 0 12px}
+.pdf-firma-l{border-top:1.5px solid #334155;padding-top:7px}
+.pdf-firma-l p{font-size:9pt;color:#1a2332;font-weight:700}
+.pdf-firma-l span{font-size:8pt;color:#64748b}
+
+.pdf-clausula{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px 12px;font-size:7.5pt;color:#94a3b8;line-height:1.6;margin-bottom:10px}
+.pdf-clausula strong{color:#64748b}
+.pdf-pie{font-size:7pt;color:#cbd5e1;text-align:center;border-top:1px solid #f1f5f9;padding-top:8px}
 </style>
 </head>
 <body>
 
-<div class="card" id="form-container">
+<!-- LOADING -->
+<div class="loading" id="loading">
+  <div class="loading-box">
+    <span class="loading-spinner">⚙️</span>
+    <div class="loading-txt" id="loading-txt">Analizando con IA...</div>
+    <div class="loading-sub" id="loading-sub">Esto puede tomar unos segundos</div>
+  </div>
+</div>
 
-  <!-- HEADER -->
+<!-- APP -->
+<div class="card" id="app">
+
   <div class="header">
-    <div class="conarca-tag">Conarca SAS</div>
-    <h1>EVALUACIÓN VISUAL RÁPIDA<br>POST-SISMO</h1>
-    <p>Habitabilidad y Riesgo · Herramienta de campo</p>
+    <div class="tag">Evaluación Post-Sismo · Voluntariado</div>
+    <h1>INSPECCIÓN VISUAL RÁPIDA POST-SISMO</h1>
+    <div class="header-sub">ATC-20 · NSR-10 · Con análisis de imágenes por IA</div>
   </div>
 
-  <!-- SECCIÓN 1: DATOS -->
-  <div class="section">
-    <div class="section-title">1 · Datos de la Inspección</div>
-    <div class="grid2">
-      <div class="field">
-        <label>Fecha y Hora</label>
-        <input type="datetime-local" id="fecha">
-      </div>
-      <div class="field">
-        <label>N° Pisos</label>
-        <input type="number" id="numPisos" placeholder="Ej: 5">
-      </div>
+  <!-- API KEY + MODELO -->
+  <div class="api-setup" id="api-setup">
+    <p>🔑 Ingresa tu API Key de Google Gemini para activar el análisis de imágenes y la generación de informes con IA</p>
+    <div class="api-row">
+      <input class="api-input" type="password" id="gemini-key" placeholder="AIza...">
+      <button class="api-btn" onclick="guardarKey()">Guardar</button>
     </div>
-    <div class="field">
-      <label>Evaluador</label>
-      <input type="text" id="evaluador" value="Andrés Pérez · Conarca SAS">
-    </div>
-    <div class="field">
-      <label>Edificio / Propietario</label>
-      <input type="text" id="nombreEdificio" placeholder="Ej: Conjunto Cantabria / Apto 302">
-    </div>
-    <div class="field">
-      <label>Dirección</label>
-      <input type="text" id="direccion" placeholder="Ej: Cra 50 #12-34, Medellín">
-    </div>
-    <div class="field">
-      <label>Sistema Estructural</label>
-      <select id="sistemaEstructural">
-        <option>Pórticos de Concreto Reforzado</option>
-        <option>Sistema Mixto (Pórticos + Muros Cortante)</option>
-        <option>Mampostería Estructural / Confinada</option>
-        <option>Estructura Metálica</option>
+    <!-- SELECTOR DE MODELO -->
+    <div style="margin-top:10px">
+      <label style="font-size:11px;font-weight:700;color:#92400e;display:block;margin-bottom:5px">🤖 Modelo de IA</label>
+      <select id="gemini-model" onchange="cambiarModelo()" style="width:100%;padding:9px 12px;border:1.5px solid #fbbf24;border-radius:9px;font-size:14px;font-family:inherit;background:#fff;color:#1a2332;-webkit-appearance:none;outline:none">
+        <option value="gemini-3.1-flash-lite" selected>Gemini 3.1 Flash Lite — 500 req/día · Más rápido ⚡</option>
+        <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash Lite — 500 req/día · Alta calidad ⚡</option>
+        <option value="gemini-3-flash">Gemini 3 Flash — 20 req/día · Equilibrado</option>
+        <option value="gemini-3.5-flash">Gemini 3.5 Flash — 20 req/día · Mejor calidad</option>
+        <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash Lite — 20 req/día · Razonamiento</option>
+        <option value="gemini-2.5-flash">Gemini 2.5 Flash — 20 req/día · Mayor razonamiento</option>
       </select>
+      <div style="margin-top:5px;display:flex;align-items:center;gap:6px">
+        <div id="modelo-badge" style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;background:#dcfce7;color:#16a34a">⚡ 500 req/día</div>
+        <span style="font-size:10px;color:#92400e">Cambia si se agota la cuota del modelo actual</span>
+      </div>
+    </div>
+    <div class="api-ok" id="api-ok">✅ API Key guardada — IA activada con <span id="modelo-activo">Gemini 3.1 Flash Lite</span></div>
+  </div>
+
+  <div class="prog-wrap">
+    <div class="prog-bar"><div class="prog-fill" id="pf"></div></div>
+    <div class="prog-txt" id="pt">0 de 21 elementos evaluados</div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="showTab('datos')">Datos</div>
+    <div class="tab" onclick="showTab('estructura')">Estructura</div>
+    <div class="tab" onclick="showTab('sistemas')">Sistemas</div>
+    <div class="tab" onclick="showTab('concepto')">Concepto</div>
+  </div>
+
+  <!-- TAB DATOS -->
+  <div id="tab-datos" class="tab-content active">
+    <div class="section">
+      <div class="sec-title"><span class="sec-num">1</span>Datos de la Inspección</div>
+      <div class="g2">
+        <div class="field"><label>Fecha y Hora</label><input type="datetime-local" id="fecha"></div>
+        <div class="field"><label>N° Pisos</label><input type="number" id="numPisos" placeholder="Ej: 5"></div>
+      </div>
+      <div class="field"><label>Edificio / Propietario</label><input type="text" id="nombreEdificio" placeholder="Ej: Conjunto Cantabria / Apto 302"></div>
+      <div class="field"><label>Dirección</label><input type="text" id="direccion" placeholder="Ej: Cra 50 #12-34, Medellín"></div>
+      <div class="field"><label>Sistema Estructural</label>
+        <select id="sist">
+          <option>Pórticos de Concreto Reforzado</option>
+          <option>Sistema Mixto (Pórticos + Muros Cortante)</option>
+          <option>Mampostería Estructural / Confinada</option>
+          <option>Estructura Metálica</option>
+          <option>Madera / Bahareque</option>
+        </select>
+      </div>
+      <div class="g2">
+        <div class="field"><label>Uso del Edificio</label>
+          <select id="uso">
+            <option>Residencial</option><option>Comercial</option><option>Oficinas</option>
+            <option>Industrial</option><option>Salud / Educación</option><option>Mixto</option>
+          </select>
+        </div>
+        <div class="field"><label>Año aprox. construcción</label><input type="number" id="ano" placeholder="Ej: 1998"></div>
+      </div>
+    </div>
+    <div class="acciones"><button class="btn-a btn-dark" onclick="showTab('estructura')">Siguiente → Evaluación Estructural</button></div>
+  </div>
+
+  <!-- TAB ESTRUCTURA -->
+  <div id="tab-estructura" class="tab-content">
+    <div class="section">
+      <div class="sec-title"><span class="sec-num">2</span>Sistema Portante Principal</div>
+      <div id="items-portante"></div>
+    </div>
+    <div class="section">
+      <div class="sec-title"><span class="sec-num">3</span>Elementos No Estructurales</div>
+      <div id="items-noest"></div>
+    </div>
+    <div class="section">
+      <div class="sec-title"><span class="sec-num">4</span>Cubierta y Estructura de Techo</div>
+      <div id="items-cubierta"></div>
+    </div>
+    <div class="acciones"><button class="btn-a btn-dark" onclick="showTab('sistemas')">Siguiente → Sistemas e Instalaciones</button></div>
+  </div>
+
+  <!-- TAB SISTEMAS -->
+  <div id="tab-sistemas" class="tab-content">
+    <div class="section">
+      <div class="sec-title"><span class="sec-num">5</span>Sistema Eléctrico</div>
+      <div id="items-elec"></div>
+    </div>
+    <div class="section">
+      <div class="sec-title"><span class="sec-num">6</span>Redes Hidrosanitarias y Gas</div>
+      <div id="items-hidro"></div>
+    </div>
+    <div class="section">
+      <div class="sec-title"><span class="sec-num">7</span>Medidas Inmediatas</div>
+      <label class="ci"><input type="checkbox" class="medida" value="Acordonar circulaciones y zonas de riesgo"><span>Acordonar circulaciones y zonas de riesgo</span></label>
+      <label class="ci"><input type="checkbox" class="medida" value="Cortar suministro eléctrico en tablero principal"><span>Cortar suministro eléctrico en tablero principal</span></label>
+      <label class="ci"><input type="checkbox" class="medida" value="Cortar suministro de gas"><span>Cortar suministro de gas</span></label>
+      <label class="ci"><input type="checkbox" class="medida" value="Retiro de mampostería o revoque suelto en altura"><span>Retiro de mampostería / revoque suelto en altura</span></label>
+      <label class="ci"><input type="checkbox" class="medida" value="Verificar intradós de losas y entrepisos"><span>Verificar intradós de losas y entrepisos</span></label>
+      <label class="ci"><input type="checkbox" class="medida" value="Evacuación parcial o total inmediata"><span>Evacuación parcial o total inmediata</span></label>
+      <label class="ci"><input type="checkbox" class="medida" value="Apuntalamiento preventivo de elementos en riesgo"><span>Apuntalamiento preventivo de elementos en riesgo</span></label>
+      <label class="ci"><input type="checkbox" class="medida" value="Inspección especializada urgente — patología estructural"><span>Inspección especializada urgente (patología estructural)</span></label>
+      <div class="field" style="margin-top:10px">
+        <label>Observaciones y notas de campo</label>
+        <textarea id="obs" rows="4" placeholder="Ubicación de daños, ejes estructurales, ancho de fisuras, condiciones especiales..."></textarea>
+      </div>
+    </div>
+
+    <!-- FOTOS GENERALES -->
+    <div class="section">
+      <div class="sec-title"><span class="sec-num">📷</span>Registro Fotográfico</div>
+      <p style="font-size:12px;color:#64748b;margin-bottom:10px">Agrega hasta 3 fotos representativas de los daños encontrados. La IA las analizará para enriquecer el informe.</p>
+      <div id="fotos-generales-prev" class="foto-previews"></div>
+      <input type="file" id="input-fotos-gen" accept="image/*" multiple capture="environment" style="display:none" onchange="agregarFotos(this,'generales')">
+      <button class="foto-btn" onclick="document.getElementById('input-fotos-gen').click()" id="btn-add-foto">
+        <span>📷</span> Tomar o seleccionar fotos (máx. 3)
+      </button>
+    </div>
+
+    <div class="acciones">
+      <button class="btn-a btn-ai" onclick="generarConIA()">✨ Generar Concepto con IA</button>
+      <button class="btn-a btn-slate" onclick="calcularYVer()">Generar sin IA →</button>
     </div>
   </div>
 
-  <!-- SECCIÓN 2: MATRIZ -->
-  <div class="section">
-    <div class="section-title">2 · Matriz de Daños</div>
-    <div id="checklist-items"></div>
+  <!-- TAB CONCEPTO -->
+  <div id="tab-concepto" class="tab-content">
+    <div class="concepto-wrap">
+      <div class="cbox" id="cbox">
+        <div class="clabel">Concepto de Habitabilidad · ATC-20</div>
+        <div class="cres" id="cres">PENDIENTE DE EVALUACIÓN</div>
+        <p class="cdesc" id="cdesc">Complete la evaluación para generar el concepto.</p>
+        <div class="cdanos" id="cdanos" style="display:none">
+          <div class="cdanos-t">Elementos con daño registrado:</div>
+          <div id="chips"></div>
+        </div>
+      </div>
+      <!-- Narrativa IA preview -->
+      <div id="narrativa-preview" style="display:none;margin-top:12px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:12px;padding:12px">
+        <div style="font-size:10px;font-weight:700;color:#0369a1;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">✨ Análisis generado por IA</div>
+        <div id="narrativa-txt" style="font-size:12px;color:#0c4a6e;line-height:1.7"></div>
+      </div>
+    </div>
+    <div class="acciones">
+      <button class="btn-a btn-green" onclick="exportarPDF()">↓ Exportar Informe PDF</button>
+      <button class="btn-a btn-slate" onclick="showTab('datos')">← Volver a editar</button>
+    </div>
+    <div class="clausula">
+      <strong>Limitación de responsabilidad:</strong> El presente informe corresponde a una evaluación visual y cualitativa de carácter preliminar realizada tras el evento sísmico, enfocada exclusivamente en la gestión del riesgo y la seguridad inmediata de los ocupantes. La inspección y este informe se limita a las condiciones perceptibles al momento de la visita, excluyendo vicios ocultos, patologías preexistentes o daños no visibles en superficie; asimismo, este documento no constituye un estudio patológico estructural, ensayo de materiales, ni un dictamen pericial o para la liquidación de indemnizaciones de seguro.
+    </div>
   </div>
 
-  <!-- SECCIÓN 3: MEDIDAS -->
-  <div class="section">
-    <div class="section-title">3 · Medidas y Observaciones</div>
-    <p style="font-size:12px;color:#64748b;margin-bottom:10px;font-weight:600;">Medidas inmediatas requeridas:</p>
-    <label class="check-item">
-      <input type="checkbox" class="medida" value="Acordonar circulaciones vulnerables">
-      <span>Acordonar circulaciones vulnerables</span>
-    </label>
-    <label class="check-item">
-      <input type="checkbox" class="medida" value="Retiro de mampostería o revoque suelto">
-      <span>Retiro de mampostería / revoque suelto</span>
-    </label>
-    <label class="check-item">
-      <input type="checkbox" class="medida" value="Verificar intradós de losa">
-      <span>Verificar intradós de losa</span>
-    </label>
-    <label class="check-item">
-      <input type="checkbox" class="medida" value="Mantenimiento de junta de dilatación">
-      <span>Mantenimiento de junta de dilatación</span>
-    </label>
-    <div class="field" style="margin-top:12px;">
-      <label>Notas de campo</label>
-      <textarea id="observaciones" rows="3" placeholder="Ubicación de fisuras, detalles de pantallas, juntas en L..."></textarea>
+</div><!-- /card -->
+
+
+<!-- ==================== PDF REPORT ==================== -->
+<div id="pdf-report">
+
+  <div class="pdf-header">
+    <div class="pdf-header-left">
+      <h1>CONCEPTO DE HABITABILIDAD<br>POST-SISMO</h1>
+      <p>Evaluación Visual Rápida · Método ATC-20 / NSR-10</p>
+    </div>
+    <div class="pdf-header-right">
+      <strong>CARLOS ANDRÉS PÉREZ NARVÁEZ</strong>
+      Arquitecto Constructor<br>
+      M.Sc. Project Management<br>
+      M.Sc. Hábitat Sustentable<br>
+      <span class="pdf-mp">MP. A95232017-1061716304</span>
     </div>
   </div>
 
   <!-- CONCEPTO -->
-  <div class="concepto-box" id="concepto-box">
-    <div class="concepto-label">Concepto de Habitabilidad</div>
-    <div class="concepto-resultado" id="concepto-resultado">PENDIENTE DE EVALUACIÓN</div>
-    <p class="concepto-desc" id="concepto-desc">Complete la matriz para generar el concepto.</p>
+  <div class="pdf-cbox" id="pdf-cbox">
+    <h2 id="pdf-cres">—</h2>
+    <p id="pdf-cdesc"></p>
   </div>
 
-  <!-- BOTONES -->
-  <div class="acciones">
-    <button class="btn-accion btn-procesar" onclick="calcularConcepto()">✓ Procesar Concepto</button>
-    <button class="btn-accion btn-pdf" onclick="generarPDF()">↓ Generar Informe PDF</button>
+  <!-- DATOS -->
+  <div class="pdf-g2">
+    <div class="pdf-box">
+      <h3>Datos del Inmueble</h3>
+      <p><strong id="pn">—</strong></p>
+      <p id="pd">—</p><p id="ps">—</p><p id="pu">—</p><p id="pp"></p><p id="pa"></p>
+    </div>
+    <div class="pdf-box">
+      <h3>Datos de la Inspección</h3>
+      <p id="pfe">—</p>
+      <p style="margin-top:6px"><strong>Evaluador:</strong></p>
+      <p>Carlos Andrés Pérez Narváez</p>
+      <p style="font-size:8pt;color:#64748b">Arquitecto Constructor<br>MP. A95232017-1061716304</p>
+    </div>
+  </div>
+
+  <!-- NARRATIVA IA -->
+  <div class="pdf-seccion" id="pdf-narrativa-sec" style="display:none">
+    <div class="pdf-narrativa">
+      <h3>Análisis Técnico — Generado con IA</h3>
+      <div id="pdf-narrativa-txt"></div>
+    </div>
+  </div>
+
+  <!-- TABLA DE DAÑOS -->
+  <div class="pdf-seccion">
+    <h3>Registro de Daños por Elemento</h3>
+    <table class="pdf-tabla">
+      <thead><tr><th>Elemento Inspeccionado</th><th>Categoría</th><th>Resultado</th></tr></thead>
+      <tbody id="pdf-tbody"></tbody>
+    </table>
+  </div>
+
+  <!-- MEDIDAS Y OBSERVACIONES -->
+  <div class="pdf-g2">
+    <div class="pdf-box">
+      <h3>Medidas Inmediatas Requeridas</h3>
+      <ul id="pdf-meds"><li>Ninguna medida urgente requerida</li></ul>
+    </div>
+    <div class="pdf-box">
+      <h3>Observaciones de Campo</h3>
+      <p id="pdf-obs" style="font-style:italic;color:#64748b">Sin observaciones adicionales.</p>
+    </div>
+  </div>
+
+  <!-- FOTOS -->
+  <div class="pdf-fotos" id="pdf-fotos-sec" style="display:none">
+    <h3>Registro Fotográfico</h3>
+    <div class="pdf-foto-grid" id="pdf-foto-grid"></div>
+  </div>
+
+  <!-- RECOMENDACIONES IA -->
+  <div class="pdf-seccion" id="pdf-recom-sec" style="display:none">
+    <div class="pdf-box">
+      <h3>Recomendaciones Técnicas</h3>
+      <div id="pdf-recom-txt" style="font-size:9.5pt;color:#334155;line-height:1.7"></div>
+    </div>
+  </div>
+
+  <!-- FIRMA -->
+  <div class="pdf-firma">
+    <div class="pdf-firma-l">
+      <p>Carlos Andrés Pérez Narváez</p>
+      <span>Arquitecto Constructor · MP. A95232017-1061716304<br>M.Sc. Project Management · M.Sc. Hábitat Sustentable</span>
+    </div>
+    <div class="pdf-firma-l">
+      <p style="color:#94a3b8;font-weight:400">_________________________</p>
+      <span>Firma</span>
+    </div>
   </div>
 
   <!-- CLÁUSULA -->
-  <div class="clausula">
-    <strong>Limitación de responsabilidad:</strong> Evaluación visual y cualitativa de carácter preliminar. No constituye estudio patológico estructural, ensayo de materiales ni dictamen pericial para efectos de indemnizaciones de seguro. Se limita a condiciones visibles al momento de la visita.
+  <div class="pdf-clausula">
+    <strong>Cláusula de limitación de responsabilidad:</strong> El presente informe corresponde a una evaluación visual y cualitativa de carácter preliminar realizada tras el evento sísmico, enfocada exclusivamente en la gestión del riesgo y la seguridad inmediata de los ocupantes. La inspección y este informe se limita a las condiciones perceptibles al momento de la visita, excluyendo vicios ocultos, patologías preexistentes o daños no visibles en superficie; asimismo, este documento no constituye un estudio patológico estructural, ensayo de materiales, ni un dictamen pericial o para la liquidación de indemnizaciones de seguro.
   </div>
-
+  <div class="pdf-pie">Evaluación Post-Sismo · ATC-20 / NSR-10 · Carlos Andrés Pérez Narváez · Arquitecto Constructor · MP. A95232017-1061716304</div>
 </div>
 
+
+<!-- ==================== SCRIPT ==================== -->
 <script>
-const items = [
-  { id:'suelo',        nombre:'Terreno / Cimentación',       desc:'Asentamientos, licuación, grietas en piso',         critico:true  },
-  { id:'columnas',     nombre:'Columnas',                    desc:'Fisuras 45°, concreto triturado, acero expuesto',   critico:true  },
-  { id:'vigas',        nombre:'Vigas y Nodos',               desc:'Grietas en apoyos, deflexión permanente',           critico:true  },
-  { id:'pantallas',    nombre:'Pantallas / Muros Cortante',  desc:'Grietas en X, aplastamiento',                       critico:true  },
-  { id:'losas',        nombre:'Losas y Placas',              desc:'Escalonamientos o fisuras continuas',               critico:false },
-  { id:'escaleras',    nombre:'Escaleras / Evacuación',      desc:'Daño en apoyos o peldaños colapsados',             critico:true  },
-  { id:'muros_no_est', nombre:'Muros No Estructurales',      desc:'Fisuras profundas, abombamiento, desprendimiento',  critico:false },
-  { id:'elementos_alt',nombre:'Elementos en Altura',         desc:'Dinteles, balcones, parapetos, revoques sueltos',   critico:false },
-  { id:'juntas',       nombre:'Juntas de Dilatación',        desc:'Trabajo en L, baldosín desprendido',                critico:false },
-];
 
-const estado = {};
-items.forEach(i => estado[i.id] = 'Nulo');
+// =========================================================
+// GUÍAS DE GRIETAS
+// =========================================================
+const GUIAS = {
+  columnas:{titulo:'📋 Grietas y daños típicos en Columnas',regla:'Fisura diagonal >3 mm con concreto desprendido = Etiqueta Roja. Acero expuesto o desplome = Evacuación inmediata.',filas:[
+    {ico:'↗️',n:'Diagonal a 45° en cuerpo',d:'Tercio medio o en extremos — falla por cortante, pérdida súbita de resistencia',t:'gt-r',tt:'Severo',s:'🔴'},
+    {ico:'↘️',n:'Diagonal en extremos (rótula plástica)',d:'Parte alta o baja de la columna, zona de nudo viga-columna',t:'gt-r',tt:'Severo',s:'🔴'},
+    {ico:'➡️',n:'Horizontal a media altura',d:'Perpendicular al eje — efecto columna corta, falla frágil inminente',t:'gt-r',tt:'Severo',s:'🔴'},
+    {ico:'💥',n:'Concreto triturado / desconchado',d:'Pérdida de masa, sección reducida visiblemente, núcleo expuesto',t:'gt-r',tt:'Severo',s:'🔴'},
+    {ico:'🔩',n:'Acero expuesto o pandeado',d:'Varillas visibles, dobladas, rotas o con pandeo lateral',t:'gt-r',tt:'Crítico',s:'🔴'},
+    {ico:'📐',n:'Desplome visible',d:'Columna fuera de plomo, inclinación perceptible a simple vista',t:'gt-r',tt:'Severo',s:'🔴'},
+    {ico:'⬆️',n:'Fisura vertical fina en cara',d:'Paralela al eje, sin concreto expuesto — tracción por flexión, monitorear',t:'gt-a',tt:'Leve',s:'🟡'},
+    {ico:'〰️',n:'Fisura en revoque superficial',d:'Solo en el acabado, concreto íntegro debajo — estético',t:'gt-v',tt:'Superficial',s:'🟢'},
+  ]},
+  vigas:{titulo:'📋 Grietas y daños típicos en Vigas y Nodos',regla:'Grieta diagonal >3 mm en apoyos o deflexión permanente visible = Etiqueta Roja. Acero expuesto en cara inferior = colapso de recubrimiento.',filas:[
+    {ico:'↗️',n:'Diagonal en apoyos (~45°)',d:'Cerca de la columna de apoyo — falla por cortante, zona más crítica',t:'gt-r',tt:'Severo',s:'🔴'},
+    {ico:'🔗',n:'Grieta en nodo viga-columna',d:'En la unión misma — punto más vulnerable sísmicamente, falla de conexión',t:'gt-r',tt:'Severo',s:'🔴'},
+    {ico:'⬇️',n:'Deflexión permanente visible',d:'Viga arqueada hacia abajo o caída — fluencia del acero o falla de apoyos',t:'gt-r',tt:'Severo',s:'🔴'},
+    {ico:'🔩',n:'Acero expuesto cara inferior',d:'Concreto de recubrimiento caído, barras a la vista en intradós',t:'gt-r',tt:'Severo',s:'🔴'},
+    {ico:'⬆️',n:'Fisura vertical zona central',d:'Perpendicular, tercio central — flexión. <0.3 mm: aceptable. >1 mm: evaluar',t:'gt-a',tt:'Leve',s:'🟡'},
+    {ico:'〰️',n:'Fisura en revoque de viga',d:'Solo en acabado o cielo raso, viga íntegra debajo',t:'gt-v',tt:'Superficial',s:'🟢'},
+  ]},
+  pantallas:{titulo:'📋 Daños en Pantallas / Muros Cortante',regla:'Grietas en X con concreto desprendido o aplastamiento en esquinas = Etiqueta Roja. Son los elementos sísmicos primarios.',filas:[
+    {ico:'✖️',n:'Grietas cruzadas en X',d:'Dos diagonales que se cruzan — estrés bidireccional severo, muro agotado',t:'gt-r',tt:'Severo',s:'🔴'},
+    {ico:'💥',n:'Aplastamiento en esquinas',d:'Compresión excesiva en bordes o extremos del muro cortante',t:'gt-r',tt:'Severo',s:'🔴'},
+    {ico:'🔩',n:'Acero de borde expuesto',d:'Barras longitudinales de borde visibles o pandeadas',t:'gt-r',tt:'Severo',s:'🔴'},
+    {ico:'↗️',n:'Grieta diagonal inclinada simple',d:'Fisura a ~45°, sin cruzarse — falla por cortante en desarrollo',t:'gt-a',tt:'Leve/Mod.',s:'🟡'},
+    {ico:'➡️',n:'Grieta horizontal en unión con losa',d:'En la junta entre muro y sistema de piso — deslizamiento',t:'gt-a',tt:'Leve/Mod.',s:'🟡'},
+  ]},
+  muros_int:{titulo:'📋 Grietas en Muros No Estructurales',regla:'Grietas en X, abombamiento o desprendimiento = riesgo de caída sobre personas. No compromete la estructura pero sí la seguridad.',filas:[
+    {ico:'✖️',n:'Grietas en X (cruzadas)',d:'Dos diagonales que se cruzan — patrón sísmico clásico, muro agotado',t:'gt-r',tt:'Severo',s:'🔴'},
+    {ico:'🫧',n:'Abombamiento del paño',d:'El muro "barriga" hacia afuera — riesgo inminente de volcamiento',t:'gt-r',tt:'Severo',s:'🔴'},
+    {ico:'🪨',n:'Desprendimiento del paño',d:'Muro suelto del marco o de la losa — caída inminente sobre personas',t:'gt-r',tt:'Severo',s:'🔴'},
+    {ico:'↗️',n:'Diagonal desde esquinas de vanos',d:'Sale de esquinas de puertas o ventanas a ~45° — concentración de esfuerzos',t:'gt-a',tt:'Moderada',s:'🟡'},
+    {ico:'➡️',n:'Horizontal a media altura',d:'Deslizamiento entre hiladas de mampostería',t:'gt-a',tt:'Moderada',s:'🟡'},
+    {ico:'⬆️',n:'Vertical en unión muro-columna',d:'Separación en la junta entre mampostería y columna — muy común post-sismo',t:'gt-a',tt:'Leve',s:'🟡'},
+    {ico:'🗺️',n:'Fisuras en mapa / reticuladas',d:'Sin dirección definida, superficiales — retracción de revoque, estético',t:'gt-v',tt:'Superficial',s:'🟢'},
+  ]},
+  fachada:{titulo:'📋 Daños en Fachadas y Exteriores',regla:'Cualquier elemento suelto en altura = riesgo de caída. Acordonar zona perimetral inmediatamente.',filas:[
+    {ico:'🪨',n:'Revestimiento suelto en altura',d:'Baldosa, enchape, panel o revoque desprendible desde el exterior',t:'gt-r',tt:'Severo',s:'🔴'},
+    {ico:'🪟',n:'Vidrios rotos en altura',d:'Ventanas o muros cortina con vidrios fracturados que puedan caer',t:'gt-r',tt:'Severo',s:'🔴'},
+    {ico:'↗️',n:'Fisuras diagonales en fachada',d:'Grietas en mampostería de fachada, patrón sísmico',t:'gt-a',tt:'Moderada',s:'🟡'},
+    {ico:'〰️',n:'Fisuras finas en revoque exterior',d:'Fisuras capilares en acabado exterior sin patrón diagonal claro',t:'gt-v',tt:'Superficial',s:'🟢'},
+  ]},
+  estr_cub:{titulo:'📋 Daños en Estructura de Cubierta',regla:'Pandeo de cerchas o uniones sueltas en altura = peligro de colapso progresivo. Restringir acceso a la cubierta.',filas:[
+    {ico:'📐',n:'Pandeo de cerchas o viguetas',d:'Deformación lateral o vertical visible en elementos de la cercha',t:'gt-r',tt:'Severo',s:'🔴'},
+    {ico:'🔩',n:'Uniones o pernos sueltos',d:'Platinas, pernos o soldaduras falladas en nudos de la cercha',t:'gt-r',tt:'Severo',s:'🔴'},
+    {ico:'⬇️',n:'Colapso parcial de cubierta',d:'Sección de la estructura de techo colapsada o desprendida',t:'gt-r',tt:'Severo',s:'🔴'},
+    {ico:'↗️',n:'Fisuras en vigas de amarre',d:'Grietas en vigas corona o de amarre perimetral',t:'gt-a',tt:'Leve/Mod.',s:'🟡'},
+  ]},
+};
 
-const container = document.getElementById('checklist-items');
-items.forEach(item => {
-  container.innerHTML += `
-    <div class="dano-item activo-verde" id="item-${item.id}">
-      <div class="dano-header">
-        <div>
-          <div class="dano-nombre">${item.nombre}</div>
-          <div class="dano-desc">${item.desc}</div>
-        </div>
-        <span class="badge-est ${item.critico ? 'critico' : 'no-critico'}">${item.critico ? 'Estructural' : 'No estructural'}</span>
-      </div>
-      <div class="dano-botones">
-        <button class="btn-dano sel-verde" id="b-${item.id}-Nulo" onclick="setDano('${item.id}','Nulo')">
-          <span class="icono">✅</span>Sin Daño
-        </button>
-        <button class="btn-dano" id="b-${item.id}-Menor" onclick="setDano('${item.id}','Menor')">
-          <span class="icono">⚠️</span>Leve
-        </button>
-        <button class="btn-dano" id="b-${item.id}-Severo" onclick="setDano('${item.id}','Severo')">
-          <span class="icono">🔴</span>Severo
-        </button>
-      </div>
-    </div>`;
-});
+// =========================================================
+// ITEMS DE EVALUACIÓN
+// =========================================================
+const ITEMS = {
+  portante:[
+    {id:'suelo',n:'Terreno y Cimentación',d:'Asentamientos diferenciales, licuación, grietas en piso, subsidencia',c:true},
+    {id:'columnas',n:'Columnas',d:'Fisuras diagonales, concreto triturado, acero expuesto, desplome',c:true,g:'columnas'},
+    {id:'vigas',n:'Vigas y Nodos',d:'Grietas en apoyos o nodos, deflexión permanente, acero expuesto',c:true,g:'vigas'},
+    {id:'pantallas',n:'Pantallas / Muros Cortante',d:'Grietas cruzadas en X, aplastamiento, acero expuesto',c:true,g:'pantallas'},
+    {id:'losas',n:'Losas y Entrepisos',d:'Escalonamientos entre losas, fisuras continuas que atraviesan la placa',c:true},
+    {id:'escaleras',n:'Escaleras y Evacuación',d:'Daño en apoyos, peldaños colapsados, viga de escalera fisurada',c:true},
+  ],
+  noest:[
+    {id:'muros_int',n:'Muros No Estructurales',d:'Fisuras en X, abombamiento, desprendimiento de mampostería',c:false,g:'muros_int'},
+    {id:'fachada',n:'Fachadas y Elementos Ext.',d:'Revestimiento suelto en altura, vidrios rotos, fisuras en fachada',c:false,g:'fachada'},
+    {id:'juntas',n:'Juntas de Dilatación',d:'Impacto entre bloques, desprendimiento de perfil o sellante',c:false},
+    {id:'parapetos',n:'Parapetos, Dinteles y Balcones',d:'Elementos en altura: parapetos, dinteles, volados o revoques sueltos',c:false},
+  ],
+  cubierta:[
+    {id:'estr_cub',n:'Estructura de Cubierta',d:'Cerchas, viguetas: pandeo, uniones sueltas, colapso parcial',c:true,g:'estr_cub'},
+    {id:'cub_cob',n:'Cubrimiento de Cubierta',d:'Tejas desplazadas, láminas levantadas, membrana rota, infiltración',c:false},
+    {id:'canalones',n:'Canalones y Desagües',d:'Canalones desprendidos, bajantes rotas, estancamiento de agua',c:false},
+  ],
+  elec:[
+    {id:'tablero',n:'Tablero Eléctrico Principal',d:'Tablero suelto, quemaduras, arcos eléctricos, breakers disparados en masa',c:true},
+    {id:'cableado',n:'Cableado y Bandejas',d:'Cables expuestos o rotos, bandejas caídas, circuitos con chispas o humo',c:true},
+    {id:'luminarias',n:'Luminarias y Equipos',d:'Luminarias caídas, equipos volcados con riesgo eléctrico',c:false},
+    {id:'pararrayos',n:'Pararrayos / Puesta a Tierra',d:'Conductor de bajada del pararrayos suelto o partido',c:false},
+  ],
+  hidro:[
+    {id:'gas',n:'Red de Gas',d:'Olor a gas, tubería fracturada, válvulas dañadas — RIESGO ALTO',c:true},
+    {id:'hidraulica',n:'Red Hidráulica',d:'Tuberías rotas, inundación visible, presión cero en pisos altos',c:false},
+    {id:'sanitaria',n:'Red Sanitaria',d:'Tuberías fracturadas, aguas negras en entrepisos o muros',c:false},
+    {id:'cisterna',n:'Cisterna / Tanque',d:'Tanque desplazado, fisurado o con anclajes fallados',c:false},
+  ],
+};
 
-function setDano(id, valor) {
-  estado[id] = valor;
-  const fila = document.getElementById('item-' + id);
-  fila.classList.remove('activo-verde','activo-amarillo','activo-rojo');
-  ['Nulo','Menor','Severo'].forEach(v => {
-    const b = document.getElementById('b-' + id + '-' + v);
-    b.classList.remove('sel-verde','sel-amarillo','sel-rojo');
-  });
-  if (valor === 'Nulo')   { document.getElementById('b-'+id+'-Nulo').classList.add('sel-verde');    fila.classList.add('activo-verde'); }
-  if (valor === 'Menor')  { document.getElementById('b-'+id+'-Menor').classList.add('sel-amarillo'); fila.classList.add('activo-amarillo'); }
-  if (valor === 'Severo') { document.getElementById('b-'+id+'-Severo').classList.add('sel-rojo');   fila.classList.add('activo-rojo'); }
-  calcularConcepto();
+// Estado global
+const estado={};
+Object.values(ITEMS).flat().forEach(i=>{estado[i.id]='Nulo';});
+const fotosData=[];
+let narrativaIA='';
+let recomendacionesIA='';
+let geminiKey='';
+let geminiModel='gemini-3.1-flash-lite';
+
+const MODELOS_INFO={
+  'gemini-3.1-flash-lite': {label:'Gemini 3.1 Flash Lite', rpd:'500 req/día', badge:'#dcfce7', badgeColor:'#16a34a', ico:'⚡'},
+  'gemini-3.5-flash-lite': {label:'Gemini 3.5 Flash Lite', rpd:'500 req/día', badge:'#dcfce7', badgeColor:'#16a34a', ico:'⚡'},
+  'gemini-3-flash':        {label:'Gemini 3 Flash',        rpd:'20 req/día',  badge:'#fef3c7', badgeColor:'#92400e', ico:'🔵'},
+  'gemini-3.5-flash':      {label:'Gemini 3.5 Flash',      rpd:'20 req/día',  badge:'#fef3c7', badgeColor:'#92400e', ico:'🔵'},
+  'gemini-2.5-flash-lite': {label:'Gemini 2.5 Flash Lite', rpd:'20 req/día',  badge:'#fef3c7', badgeColor:'#92400e', ico:'🧠'},
+  'gemini-2.5-flash':      {label:'Gemini 2.5 Flash',      rpd:'20 req/día',  badge:'#fef3c7', badgeColor:'#92400e', ico:'🧠'},
+};
+
+// =========================================================
+// API KEY
+// =========================================================
+function guardarKey(){
+  const k=document.getElementById('gemini-key').value.trim();
+  if(!k){alert('Ingresa una API Key válida');return;}
+  geminiKey=k;
+  sessionStorage.setItem('gemini_key',k);
+  actualizarUIModelo();
+  document.getElementById('api-ok').style.display='block';
+  document.getElementById('api-setup').style.background='#f0fdf4';
 }
 
-// Fecha automática
-const ahora = new Date();
-const pad = n => String(n).padStart(2,'0');
-document.getElementById('fecha').value =
-  `${ahora.getFullYear()}-${pad(ahora.getMonth()+1)}-${pad(ahora.getDate())}T${pad(ahora.getHours())}:${pad(ahora.getMinutes())}`;
+function cambiarModelo(){
+  geminiModel=document.getElementById('gemini-model').value;
+  sessionStorage.setItem('gemini_model',geminiModel);
+  actualizarUIModelo();
+}
 
-function calcularConcepto() {
-  let sevEst=false, sevNoEst=false, menor=false;
-  items.forEach(i => {
-    const v = estado[i.id];
-    if (v==='Severo') { if(i.critico) sevEst=true; else sevNoEst=true; }
-    if (v==='Menor') menor=true;
+function actualizarUIModelo(){
+  const info=MODELOS_INFO[geminiModel]||{};
+  const badge=document.getElementById('modelo-badge');
+  const activo=document.getElementById('modelo-activo');
+  if(badge){badge.textContent=info.ico+' '+info.rpd;badge.style.background=info.badge;badge.style.color=info.badgeColor;}
+  if(activo)activo.textContent=info.label||geminiModel;
+}
+
+// Cargar key y modelo guardados
+const savedKey=sessionStorage.getItem('gemini_key');
+const savedModel=sessionStorage.getItem('gemini_model');
+if(savedModel){
+  geminiModel=savedModel;
+  const sel=document.getElementById('gemini-model');
+  if(sel)sel.value=savedModel;
+  actualizarUIModelo();
+}
+if(savedKey){
+  geminiKey=savedKey;
+  document.getElementById('gemini-key').value=savedKey;
+  document.getElementById('api-ok').style.display='block';
+  document.getElementById('api-setup').style.background='#f0fdf4';
+  actualizarUIModelo();
+}
+
+// =========================================================
+// RENDER ITEMS
+// =========================================================
+function renderItems(items,cid){
+  const c=document.getElementById(cid);
+  items.forEach(item=>{
+    const tg=!!item.g;
+    c.innerHTML+=`
+      <div class="di av" id="di-${item.id}">
+        <div class="di-top">
+          <div><div class="di-nombre">${item.n}</div><div class="di-desc">${item.d}</div></div>
+          <span class="badge ${item.c?'bc':'bnc'}">${item.c?'Estructural':'No est.'}</span>
+        </div>
+        <div class="di-bots">
+          <button class="bd sv" id="b-${item.id}-Nulo"   onclick="setDano('${item.id}','Nulo')"><span class="ico">✅</span>Sin Daño</button>
+          <button class="bd"    id="b-${item.id}-Menor"  onclick="setDano('${item.id}','Menor')"><span class="ico">⚠️</span>Leve</button>
+          <button class="bd"    id="b-${item.id}-Severo" onclick="setDano('${item.id}','Severo')"><span class="ico">🔴</span>Severo</button>
+        </div>
+        ${tg?`<button class="btn-guia" id="gbtn-${item.id}" onclick="toggleGuia('${item.id}','${item.g}')"><span>📋</span>Ver guía de grietas y daños típicos<span class="arrow">▼</span></button><div class="guia-panel" id="gp-${item.id}"></div>`:''}
+      </div>`;
   });
+}
 
-  const res  = document.getElementById('concepto-resultado');
-  const desc = document.getElementById('concepto-desc');
-  const box  = document.getElementById('concepto-box');
+renderItems(ITEMS.portante,'items-portante');
+renderItems(ITEMS.noest,'items-noest');
+renderItems(ITEMS.cubierta,'items-cubierta');
+renderItems(ITEMS.elec,'items-elec');
+renderItems(ITEMS.hidro,'items-hidro');
 
-  res.className = 'concepto-resultado';
-  box.className = 'concepto-box';
+// =========================================================
+// GUÍA TOGGLE
+// =========================================================
+function toggleGuia(iid,gk){
+  const panel=document.getElementById('gp-'+iid);
+  const btn=document.getElementById('gbtn-'+iid);
+  const g=GUIAS[gk];
+  if(panel.classList.contains('show')){panel.classList.remove('show');btn.classList.remove('open');return;}
+  if(!panel.innerHTML){
+    let h=`<div class="guia-header">${g.titulo}</div>`;
+    g.filas.forEach(f=>{h+=`<div class="guia-row"><span style="font-size:18px">${f.ico}</span><div><div class="guia-nombre">${f.n}</div><div class="guia-det">${f.d}</div></div><span class="gt ${f.t}">${f.tt}</span><span style="font-size:18px">${f.s}</span></div>`;});
+    h+=`<div class="guia-regla"><strong>📏 Regla de campo:</strong> ${g.regla}</div>`;
+    panel.innerHTML=h;
+  }
+  panel.classList.add('show');btn.classList.add('open');
+}
 
-  if (sevEst) {
-    res.classList.add('rojo'); box.classList.add('rojo');
-    res.innerText = '🔴  INHABITABLE — RIESGO ALTO';
-    desc.innerText = 'Daño severo en elementos estructurales. Evacuación preventiva e inspección especializada urgente.';
-  } else if (sevNoEst || menor) {
-    res.classList.add('amarillo'); box.classList.add('amarillo');
-    res.innerText = '🟡  HABITABLE CON RESTRICCIONES';
-    desc.innerText = 'Estructura principal sana. Existen riesgos no estructurales que deben acordonarse o repararse antes del uso normal.';
-  } else {
-    res.classList.add('verde'); box.classList.add('verde');
-    res.innerText = '🟢  HABITABLE';
-    desc.innerText = 'Sin daños que comprometan la seguridad de los ocupantes. Apta para uso normal.';
+// =========================================================
+// SET DAÑO
+// =========================================================
+function setDano(id,valor){
+  estado[id]=valor;
+  const fila=document.getElementById('di-'+id);
+  fila.classList.remove('av','aa','ar');
+  ['Nulo','Menor','Severo'].forEach(v=>{document.getElementById('b-'+id+'-'+v).classList.remove('sv','sa','sr');});
+  const m={Nulo:['sv','av'],Menor:['sa','aa'],Severo:['sr','ar']};
+  const[bc,fc]=m[valor];
+  document.getElementById('b-'+id+'-'+valor).classList.add(bc);
+  fila.classList.add(fc);
+  actualizarProgreso();
+}
+
+// =========================================================
+// PROGRESO
+// =========================================================
+function actualizarProgreso(){
+  const total=Object.keys(estado).length;
+  const con=Object.values(estado).filter(v=>v!=='Nulo').length;
+  document.getElementById('pf').style.width=Math.round(con/total*100)+'%';
+  document.getElementById('pt').textContent=`${con} de ${total} elementos con daño registrado`;
+}
+
+// =========================================================
+// TABS
+// =========================================================
+function showTab(n){
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+n).classList.add('active');
+  ['datos','estructura','sistemas','concepto'].forEach((t,i)=>{if(t===n)document.querySelectorAll('.tab')[i].classList.add('active');});
+  window.scrollTo(0,0);
+}
+
+// =========================================================
+// FOTOS
+// =========================================================
+function agregarFotos(input,grupo){
+  const archivos=[...input.files];
+  const max=3;
+  if(fotosData.length>=max){alert(`Máximo ${max} fotos por inspección`);return;}
+  const restantes=max-fotosData.length;
+  archivos.slice(0,restantes).forEach(file=>{
+    const reader=new FileReader();
+    reader.onload=e=>{
+      const idx=fotosData.length;
+      fotosData.push({base64:e.target.result,nombre:file.name,analisis:''});
+      renderFotos();
+      if(fotosData.length>=max){document.getElementById('btn-add-foto').style.display='none';}
+    };
+    reader.readAsDataURL(file);
+  });
+  input.value='';
+}
+
+function renderFotos(){
+  const prev=document.getElementById('fotos-generales-prev');
+  prev.innerHTML='';
+  fotosData.forEach((f,i)=>{
+    prev.innerHTML+=`
+      <div class="foto-thumb">
+        <img src="${f.base64}">
+        <button class="foto-del" onclick="eliminarFoto(${i})">×</button>
+      </div>`;
+  });
+}
+
+function eliminarFoto(idx){
+  fotosData.splice(idx,1);
+  renderFotos();
+  document.getElementById('btn-add-foto').style.display='flex';
+}
+
+// =========================================================
+// CALCULAR CONCEPTO (lógica local)
+// =========================================================
+function calcularConcepto(){
+  const todos=Object.values(ITEMS).flat();
+  let sevEst=false,sevNoEst=false,menor=false;
+  const severos=[],menores=[];
+  todos.forEach(item=>{
+    const v=estado[item.id];
+    if(v==='Severo'){if(item.c)sevEst=true;else sevNoEst=true;severos.push(item.n);}
+    if(v==='Menor'){menor=true;menores.push(item.n);}
+  });
+  let nivel,texto,desc;
+  if(sevEst){nivel='cr';texto='🔴  INHABITABLE — RIESGO ALTO';desc='Se detectó daño severo en elementos estructurales o redes críticas. Se requiere evacuación preventiva e inspección especializada urgente por ingeniero estructural.';}
+  else if(sevNoEst||menor){nivel='ca';texto='🟡  HABITABLE CON RESTRICCIONES';desc='La estructura principal conserva su integridad, pero se registran daños en elementos no estructurales o instalaciones que representan riesgo para los ocupantes. Deben atenderse antes de retomar el uso normal.';}
+  else{nivel='cv';texto='🟢  HABITABLE';desc='No se detectaron daños que comprometan la seguridad estructural ni la integridad de los ocupantes. La edificación es apta para uso normal. Se recomienda monitoreo durante las próximas 72 horas.';}
+  return{nivel,texto,desc,severos,menores};
+}
+
+function mostrarConcepto(r){
+  const res=document.getElementById('cres');
+  const desc=document.getElementById('cdesc');
+  const box=document.getElementById('cbox');
+  const chips=document.getElementById('chips');
+  const cdanos=document.getElementById('cdanos');
+  res.className='cres '+r.nivel;
+  box.className='cbox '+r.nivel;
+  res.innerText=r.texto;
+  desc.innerText=r.desc;
+  chips.innerHTML='';
+  r.severos.forEach(n=>chips.innerHTML+=`<span class="chip chip-r">🔴 ${n}</span>`);
+  r.menores.forEach(n=>chips.innerHTML+=`<span class="chip chip-a">⚠️ ${n}</span>`);
+  cdanos.style.display=(r.severos.length+r.menores.length>0)?'block':'none';
+}
+
+function calcularYVer(){
+  const r=calcularConcepto();
+  mostrarConcepto(r);
+  document.getElementById('narrativa-preview').style.display='none';
+  narrativaIA='';recomendacionesIA='';
+  showTab('concepto');
+}
+
+// =========================================================
+// GEMINI API
+// =========================================================
+async function llamarGemini(prompt,imagenes=[]){
+  if(!geminiKey)throw new Error('Sin API Key');
+  const parts=[{text:prompt}];
+  imagenes.forEach(img=>{
+    const b64=img.base64.split(',')[1];
+    const mime=img.base64.split(';')[0].split(':')[1];
+    parts.push({inline_data:{mime_type:mime,data:b64}});
+  });
+  const body={contents:[{parts}],generationConfig:{temperature:0.3,maxOutputTokens:1200}};
+  const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${geminiKey}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  if(!res.ok){const e=await res.json();throw new Error(e.error?.message||'Error API');}
+  const data=await res.json();
+  return data.candidates?.[0]?.content?.parts?.[0]?.text||'';
+}
+
+async function generarConIA(){
+  if(!geminiKey){
+    alert('Ingresa tu API Key de Gemini primero en la parte superior de la app.');
+    return;
+  }
+  const r=calcularConcepto();
+  mostrarConcepto(r);
+  showTab('concepto');
+  mostrarLoading('Analizando la inspección con IA...','Esto puede tomar 10-20 segundos');
+
+  // Construir resumen de hallazgos
+  const todos=Object.values(ITEMS).flat();
+  const hallazgos=todos.filter(i=>estado[i.id]!=='Nulo').map(i=>`- ${i.n} (${estado[i.id]==='Severo'?'Daño severo / crítico':'Daño leve / superficial'}): ${i.d}`).join('\n');
+  const medidas=[...document.querySelectorAll('.medida:checked')].map(m=>m.value).join(', ');
+  const obs=document.getElementById('obs').value.trim();
+  const datos={edificio:document.getElementById('nombreEdificio').value,dir:document.getElementById('direccion').value,sist:document.getElementById('sist').value,uso:document.getElementById('uso').value,pisos:document.getElementById('numPisos').value,ano:document.getElementById('ano').value};
+  const concepto=r.texto.replace(/[🔴🟡🟢]/g,'').trim();
+
+  const prompt=`Eres un arquitecto e ingeniero estructural experto en evaluación post-sismo. Tu tarea es redactar la sección de análisis técnico de un informe de inspección visual rápida, siguiendo el método ATC-20 y la NSR-10 de Colombia.
+
+DATOS DEL INMUEBLE:
+- Edificación: ${datos.edificio||'No especificada'}
+- Dirección: ${datos.dir||'No especificada'}
+- Sistema estructural: ${datos.sist}
+- Uso: ${datos.uso}
+- Número de pisos: ${datos.pisos||'No especificado'}
+- Año aprox. de construcción: ${datos.ano||'No especificado'}
+
+CONCEPTO DE HABITABILIDAD: ${concepto}
+
+HALLAZGOS DE LA INSPECCIÓN:
+${hallazgos||'Sin daños detectados en los elementos evaluados.'}
+
+MEDIDAS INMEDIATAS REQUERIDAS: ${medidas||'Ninguna'}
+
+OBSERVACIONES DE CAMPO: ${obs||'Ninguna'}
+
+${fotosData.length>0?'Se adjuntan '+fotosData.length+' fotografías tomadas durante la inspección.':''}
+
+INSTRUCCIONES DE REDACCIÓN:
+1. Redacta un análisis técnico conciso en 3-4 párrafos breves.
+2. El lenguaje debe ser técnico pero comprensible para propietarios y no especialistas.
+3. Explica brevemente qué significa el concepto de habitabilidad emitido.
+4. Menciona los hallazgos más relevantes y su implicación para la seguridad.
+5. Cierra con una sección titulada "RECOMENDACIONES:" que liste de 3 a 5 recomendaciones técnicas específicas y priorizadas según la urgencia.
+6. No uses markdown, asteriscos ni símbolos especiales. Solo texto plano con párrafos separados.
+7. Tono profesional, directo y empático — es una emergencia.
+8. NO repitas los datos del encabezado del informe.`;
+
+  try{
+    const respuesta=await llamarGemini(prompt,fotosData.length>0?fotosData:[]);
+    // Separar narrativa de recomendaciones
+    const partes=respuesta.split(/RECOMENDACIONES:/i);
+    narrativaIA=partes[0].trim();
+    recomendacionesIA=partes[1]?partes[1].trim():'';
+
+    // Mostrar en pantalla
+    document.getElementById('narrativa-txt').innerText=narrativaIA;
+    document.getElementById('narrativa-preview').style.display='block';
+    ocultarLoading();
+  }catch(err){
+    ocultarLoading();
+    const esQuota=err.message.includes('429')||err.message.toLowerCase().includes('quota')||err.message.toLowerCase().includes('limit');
+    if(esQuota){
+      alert('⚠️ Cuota agotada para '+geminiModel+'\n\nSolución: ve a la parte superior de la app y cambia a otro modelo.\n\nRecomendado: Gemini 3.1 Flash Lite (500 req/día)');
+    }else{
+      alert('Error al conectar con Gemini: '+err.message+'\n\nVerifica tu API Key y conexión a internet.');
+    }
+    console.error(err);
   }
 }
 
-function generarPDF() {
-  calcularConcepto();
-  window.print();
+// =========================================================
+// LOADING
+// =========================================================
+function mostrarLoading(txt,sub){
+  document.getElementById('loading-txt').textContent=txt;
+  document.getElementById('loading-sub').textContent=sub;
+  document.getElementById('loading').classList.add('show');
 }
+function ocultarLoading(){document.getElementById('loading').classList.remove('show');}
+
+// =========================================================
+// EXPORTAR PDF
+// =========================================================
+async function exportarPDF(){
+  mostrarLoading('Preparando el informe PDF...','');
+  const r=calcularConcepto();
+  const todos=Object.values(ITEMS).flat();
+  const fecha=document.getElementById('fecha').value;
+  const fechaLeg=fecha?new Date(fecha).toLocaleString('es-CO',{dateStyle:'full',timeStyle:'short'}):'—';
+
+  // Llenar datos
+  document.getElementById('pn').textContent=document.getElementById('nombreEdificio').value||'—';
+  document.getElementById('pd').textContent=document.getElementById('direccion').value||'—';
+  document.getElementById('ps').textContent='Sistema: '+document.getElementById('sist').value;
+  document.getElementById('pu').textContent='Uso: '+document.getElementById('uso').value;
+  const pi=document.getElementById('numPisos').value;
+  document.getElementById('pp').textContent=pi?`Pisos: ${pi}`:'';
+  const an=document.getElementById('ano').value;
+  document.getElementById('pa').textContent=an?`Año aprox.: ${an}`:'';
+  document.getElementById('pfe').textContent=fechaLeg;
+
+  // Concepto
+  const cb=document.getElementById('pdf-cbox');
+  cb.className='pdf-cbox '+r.nivel;
+  document.getElementById('pdf-cres').textContent=r.texto;
+  document.getElementById('pdf-cdesc').textContent=r.desc;
+
+  // Narrativa IA
+  if(narrativaIA){
+    document.getElementById('pdf-narrativa-txt').textContent=narrativaIA;
+    document.getElementById('pdf-narrativa-sec').style.display='block';
+    if(recomendacionesIA){
+      document.getElementById('pdf-recom-txt').textContent=recomendacionesIA;
+      document.getElementById('pdf-recom-sec').style.display='block';
+    }
+  }else{
+    document.getElementById('pdf-narrativa-sec').style.display='none';
+    document.getElementById('pdf-recom-sec').style.display='none';
+  }
+
+  // Tabla daños
+  const tbody=document.getElementById('pdf-tbody');
+  tbody.innerHTML='';
+  let hayDano=false;
+  todos.forEach(item=>{
+    const v=estado[item.id];
+    if(v!=='Nulo'){
+      hayDano=true;
+      const tc=v==='Severo'?'cr':'ca';
+      const tt=v==='Severo'?'Severo / Crítico':'Leve / Superficial';
+      tbody.innerHTML+=`<tr><td><strong>${item.n}</strong><br><span style="font-size:7.5pt;color:#64748b">${item.d}</span></td><td><span class="ptag ${item.c?'est':'noest'}">${item.c?'Estructural':'No estruct.'}</span></td><td><span class="ptag ${tc}">${tt}</span></td></tr>`;
+    }
+  });
+  if(!hayDano)tbody.innerHTML='<tr><td colspan="3" style="text-align:center;color:#16a34a;padding:12px;font-weight:700">✅ Sin daños detectados en ningún elemento evaluado</td></tr>';
+
+  // Medidas
+  const meds=[...document.querySelectorAll('.medida:checked')].map(m=>m.value);
+  document.getElementById('pdf-meds').innerHTML=meds.length?meds.map(m=>`<li>${m}</li>`).join(''):'<li style="color:#16a34a">Ninguna medida urgente requerida</li>';
+
+  // Observaciones
+  document.getElementById('pdf-obs').textContent=document.getElementById('obs').value.trim()||'Sin observaciones adicionales.';
+
+  // Fotos en PDF
+  if(fotosData.length>0){
+    const grid=document.getElementById('pdf-foto-grid');
+    grid.innerHTML=fotosData.map((f,i)=>`<div class="pdf-foto-item"><img src="${f.base64}"><div class="pdf-foto-cap">Foto ${i+1}</div></div>`).join('');
+    document.getElementById('pdf-fotos-sec').style.display='block';
+  }else{
+    document.getElementById('pdf-fotos-sec').style.display='none';
+  }
+
+  ocultarLoading();
+
+  // Generar PDF con html2pdf
+  await new Promise(res=>setTimeout(res,300));
+  const element=document.getElementById('pdf-report');
+  element.style.display='block';
+  const nombreArchivo=`ConceptoHabitabilidad_${(document.getElementById('nombreEdificio').value||'Edificio').replace(/\s+/g,'_')}.pdf`;
+  const opt={
+    margin:[0.4,0.4,0.4,0.4],
+    filename:nombreArchivo,
+    image:{type:'jpeg',quality:0.95},
+    html2canvas:{scale:2,useCORS:true,allowTaint:true},
+    jsPDF:{unit:'in',format:'letter',orientation:'portrait'}
+  };
+  try{
+    await html2pdf().set(opt).from(element).save();
+  }finally{
+    element.style.display='none';
+  }
+}
+
+// Fecha automática
+const ahora=new Date();
+const pad=n=>String(n).padStart(2,'0');
+document.getElementById('fecha').value=`${ahora.getFullYear()}-${pad(ahora.getMonth()+1)}-${pad(ahora.getDate())}T${pad(ahora.getHours())}:${pad(ahora.getMinutes())}`;
+
 </script>
 </body>
 </html>
