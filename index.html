@@ -418,7 +418,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
           <p id="pfe">—</p>
           <p style="margin-top:5px"><strong>Evaluador:</strong></p>
           <p>Carlos Andrés Pérez Narváez</p>
-          <p style="font-size:7.5pt;color:#64748b">Arquitecto Constructor · MP. A95232017-1061716304</p>
+          <p style="font-size:7.5pt;color:#64748b">Arquitecto Constructor · MP. A95232017-1061716304<br>Tel. 315 448 7186</p>
         </div>
       </td>
     </tr>
@@ -462,7 +462,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <table style="width:100%;border-collapse:collapse;margin:14px 0 10px">
     <tr>
       <td style="width:50%;vertical-align:top;padding-right:20px">
-        <div class="pdf-firma-l"><p>Carlos Andrés Pérez Narváez</p><span>Arquitecto Constructor · MP. A95232017-1061716304<br>M.Sc. Project Management · M.Sc. Hábitat Sustentable</span></div>
+        <div class="pdf-firma-l">
+          <p>Carlos Andrés Pérez Narváez</p>
+          <span>Arquitecto Constructor · MP. A95232017-1061716304<br>M.Sc. Project Management · M.Sc. Hábitat Sustentable<br>Tel. 315 448 7186</span>
+        </div>
       </td>
       <td style="width:50%;vertical-align:top">
         <div class="pdf-firma-l"><p style="color:#94a3b8;font-weight:400">_________________________</p><span>Firma</span></div>
@@ -471,7 +474,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </table>
 
   <div class="pdf-clausula"><strong>Cláusula de limitación de responsabilidad:</strong> El presente informe corresponde a una evaluación visual y cualitativa de carácter preliminar realizada tras el evento sísmico, enfocada exclusivamente en la gestión del riesgo y la seguridad inmediata de los ocupantes. La inspección y este informe se limita a las condiciones perceptibles al momento de la visita, excluyendo vicios ocultos, patologías preexistentes o daños no visibles en superficie; asimismo, este documento no constituye un estudio patológico estructural, ensayo de materiales, ni un dictamen pericial o para la liquidación de indemnizaciones de seguro.</div>
-  <div class="pdf-pie">Evaluación Post-Sismo · ATC-20 / NSR-10 · Carlos Andrés Pérez Narváez · Arquitecto Constructor · MP. A95232017-1061716304</div>
+  <div class="pdf-pie">Evaluación Post-Sismo · ATC-20 / NSR-10 · Carlos Andrés Pérez Narváez · Arquitecto Constructor · MP. A95232017-1061716304 · Tel. 315 448 7186</div>
 </div>
 
 <script>
@@ -1086,49 +1089,104 @@ async function llamarGemini(prompt, imagenes=[]) {
 async function generarConIA() {
   if (!geminiKey) { alert('Ingresa tu API Key de Gemini primero'); return; }
   if (!sistemaSeleccionado) { alert('Primero selecciona el sistema estructural'); showTab('sistema'); return; }
+
   const r = calcularConcepto();
   mostrarConcepto(r);
   showTab('concepto');
-  mostrarLoading('Analizando la inspección con IA...', 'Esto puede tomar 10-20 segundos');
 
   const todos = todosItemsActuales();
-  const hallazgos = todos.filter(i => estadoItems[i.id] && estadoItems[i.id] !== 'Nulo')
-    .map(i => `- ${i.n} (${estadoItems[i.id]==='Severo'?'Daño severo / crítico':'Daño leve / superficial'}): ${i.d}`).join('\n');
-  const medidas = [...document.querySelectorAll('.medida:checked')].map(m => m.value).join(', ');
+  const hallazgos = todos.filter(i => estadoItems[i.id] && estadoItems[i.id] !== 'Nulo');
+  const hallazgosSeveros = hallazgos.filter(i => estadoItems[i.id] === 'Severo');
+  const hallazgosMenores = hallazgos.filter(i => estadoItems[i.id] === 'Menor');
+  const medidas = [...document.querySelectorAll('.medida:checked')].map(m => m.value);
   const obs = document.getElementById('obs').value.trim();
   const concepto = r.texto.replace(/[🔴🟡🟢]/g,'').trim();
   const sistNombre = SISTEMAS[sistemaSeleccionado]?.nombre || sistemaSeleccionado;
+  const tieneHallazgos = hallazgos.length > 0;
 
-  const prompt = `Eres un arquitecto e ingeniero estructural experto en evaluación post-sismo. Tu tarea es redactar el análisis técnico de un informe de inspección visual rápida, siguiendo el método ATC-20 y la NSR-10 de Colombia.
+  // PASO 1: Si hay fotos, analizarlas primero por separado
+  let descripcionFotos = '';
+  if (fotosData.length > 0) {
+    mostrarLoading('Analizando fotografías...', `${fotosData.length} foto(s) encontrada(s)`);
+    const promptFotos = `Eres un arquitecto experto en patología de edificaciones post-sismo. Analiza ${fotosData.length === 1 ? 'esta fotografía' : 'estas ' + fotosData.length + ' fotografías'} tomadas durante una inspección post-sismo de una edificación con sistema estructural de ${sistNombre}.
 
-DATOS DEL INMUEBLE:
+Para ${fotosData.length === 1 ? 'la fotografía' : 'cada fotografía'} describe en 2-3 líneas:
+- Qué elemento o zona muestra
+- Tipo y patrón de daño visible (grietas, fisuras, desprendimientos, deformaciones)
+- Nivel de severidad observado visualmente
+
+Sé preciso y técnico. Solo describe lo que ves objetivamente. No inventes daños que no sean visibles. Sin markdown ni asteriscos.`;
+
+    try {
+      descripcionFotos = await llamarGemini(promptFotos, fotosData);
+    } catch(err) {
+      descripcionFotos = '';
+      console.warn('Error analizando fotos:', err.message);
+    }
+  }
+
+  // PASO 2: Generar el informe narrativo completo
+  mostrarLoading('Generando informe técnico...', 'Integrando hallazgos y análisis');
+
+  const listaSeveros = hallazgosSeveros.length > 0
+    ? hallazgosSeveros.map(i => `  * ${i.n}: ${i.d}`).join('\n')
+    : '  (Ninguno)';
+  const listaMenores = hallazgosMenores.length > 0
+    ? hallazgosMenores.map(i => `  * ${i.n}: ${i.d}`).join('\n')
+    : '  (Ninguno)';
+  const listaMedidas = medidas.length > 0
+    ? medidas.map(m => `  * ${m}`).join('\n')
+    : '  (Ninguna seleccionada)';
+
+  const prompt = `Eres un arquitecto y evaluador técnico con experiencia en inspecciones post-sismo. Redacta el análisis técnico de un informe de habitabilidad usando el método ATC-20 y la NSR-10 colombiana.
+
+DATOS DE LA INSPECCIÓN:
 - Edificación: ${document.getElementById('nombreEdificio').value || 'No especificada'}
 - Dirección: ${document.getElementById('direccion').value || 'No especificada'}
 - Sistema estructural: ${sistNombre}
 - Uso: ${document.getElementById('uso').value}
-- Número de pisos: ${document.getElementById('numPisos').value || 'No especificado'}
-- Año aprox. de construcción: ${document.getElementById('ano').value || 'No especificado'}
+- Pisos: ${document.getElementById('numPisos').value || 'No especificado'}
+- Año aprox.: ${document.getElementById('ano').value || 'No especificado'}
+- CONCEPTO EMITIDO: ${concepto}
 
-CONCEPTO DE HABITABILIDAD: ${concepto}
+DAÑOS SEVEROS O CRÍTICOS IDENTIFICADOS:
+${listaSeveros}
 
-HALLAZGOS DE LA INSPECCIÓN:
-${hallazgos || 'Sin daños detectados en los elementos evaluados.'}
+DAÑOS LEVES O SUPERFICIALES IDENTIFICADOS:
+${listaMenores}
 
-MEDIDAS INMEDIATAS REQUERIDAS: ${medidas || 'Ninguna'}
-OBSERVACIONES DE CAMPO: ${obs || 'Ninguna'}
-${fotosData.length > 0 ? 'Se adjuntan '+fotosData.length+' fotografías de la inspección.' : ''}
+MEDIDAS INMEDIATAS REQUERIDAS:
+${listaMedidas}
 
-INSTRUCCIONES:
-1. Redacta el análisis en 3-4 párrafos breves. Lenguaje técnico pero comprensible.
-2. Explica el concepto de habitabilidad emitido y su implicación práctica.
-3. Menciona los hallazgos más relevantes según el sistema estructural (${sistNombre}).
-4. Cierra con "RECOMENDACIONES:" y lista 3-5 recomendaciones priorizadas por urgencia.
-5. Sin markdown, asteriscos ni símbolos. Texto plano con párrafos separados.
-6. Tono profesional, directo y empático. Es una emergencia.
-7. No repitas los datos del encabezado del informe.`;
+OBSERVACIONES DEL INSPECTOR:
+${obs || '(Sin observaciones adicionales)'}
+
+${descripcionFotos ? `ANÁLISIS DE FOTOGRAFÍAS DE CAMPO:\n${descripcionFotos}` : ''}
+
+INSTRUCCIONES DE REDACCIÓN — SÍGUELAS CON PRECISIÓN:
+
+1. ANÁLISIS (3 párrafos máximo):
+   - Párrafo 1: Describe la edificación y el contexto de la inspección. Menciona el sistema estructural y su comportamiento general ante el sismo.
+   - Párrafo 2: Describe los hallazgos concretos identificados. Basa el texto ÚNICAMENTE en los daños listados arriba. Si hay fotos, integra lo observado en ellas. No menciones daños que no estén en la lista.
+   - Párrafo 3: Explica el concepto de habitabilidad emitido y qué significa para los ocupantes en términos prácticos y comprensibles.
+
+2. RECOMENDACIONES (escribe exactamente la palabra "RECOMENDACIONES:" como separador):
+   - Lista solo las recomendaciones que se justifican directamente por los hallazgos encontrados.
+   - Priorízalas por urgencia: primero seguridad de personas, luego estabilidad estructural, luego seguimiento.
+   - Si los daños son leves, las recomendaciones deben ser proporcionales. No exageres.
+   - Máximo 5 recomendaciones. Si con 3 es suficiente, usa 3.
+   - Lenguaje técnico pero comprensible para propietarios y no especialistas.
+
+REGLAS ABSOLUTAS:
+- Sin markdown, sin asteriscos, sin negritas, sin guiones decorativos.
+- Texto plano con párrafos separados por línea en blanco.
+- No digas que el informe fue elaborado por un especialista en estructuras.
+- No repitas los datos del encabezado.
+- No inventes daños ni recomendaciones que no correspondan a los hallazgos.
+- Tono profesional, directo, empático. Es una situación de emergencia.`;
 
   try {
-    const respuesta = await llamarGemini(prompt, fotosData.length > 0 ? fotosData : []);
+    const respuesta = await llamarGemini(prompt);
     const partes = respuesta.split(/RECOMENDACIONES:/i);
     narrativaIA = partes[0].trim();
     recomendacionesIA = partes[1] ? partes[1].trim() : '';
@@ -1217,19 +1275,31 @@ async function exportarPDF() {
   }
 
   ocultarLoading();
-  await new Promise(res => setTimeout(res, 300));
-  const element = document.getElementById('pdf-report');
-  element.style.display = 'block';
+  await new Promise(res => setTimeout(res, 400));
+
   const nombre = `ConceptoHabitabilidad_${(document.getElementById('nombreEdificio').value||'Edificio').replace(/\s+/g,'_')}.pdf`;
+
+  // Clonar solo el pdf-report a un contenedor limpio para evitar página en blanco
+  const original = document.getElementById('pdf-report');
+  const clone = original.cloneNode(true);
+  clone.style.cssText = 'display:block;position:fixed;left:-9999px;top:0;width:750px;padding:0;margin:0;background:white;font-family:Arial,Helvetica,sans-serif;font-size:9pt;color:#1a2332;line-height:1.45';
+
+  // Copiar estilos de clases al clone (inline) para que html2pdf los capture
+  document.body.appendChild(clone);
+
   const opt = {
     margin: [0.45, 0.45, 0.45, 0.45],
     filename: nombre,
     image: {type:'jpeg', quality:0.95},
-    html2canvas: {scale:2, useCORS:true, allowTaint:true, letterRendering:true},
+    html2canvas: {scale:2, useCORS:true, allowTaint:true, letterRendering:true, backgroundColor:'#ffffff'},
     jsPDF: {unit:'in', format:'letter', orientation:'portrait'}
   };
-  try { await html2pdf().set(opt).from(element).save(); }
-  finally { element.style.display = 'none'; }
+
+  try {
+    await html2pdf().set(opt).from(clone).save();
+  } finally {
+    document.body.removeChild(clone);
+  }
 }
 
 // Fecha automática
