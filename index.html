@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Inspección Post-Sismo · C.A. Pérez</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" onerror="window.__h2pError=true"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#eef0f4;color:#1a2332;padding:10px;font-size:15px}
@@ -34,6 +34,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .tabs::-webkit-scrollbar{display:none}
 .tab{flex:1;min-width:0;padding:11px 4px;text-align:center;font-size:10px;font-weight:700;color:#94a3b8;cursor:pointer;border-bottom:3px solid transparent;transition:all .15s;white-space:nowrap;letter-spacing:.3px;text-transform:uppercase}
 .tab.active{color:#1a2332;border-bottom-color:#1a2332;background:#fff}
+.tab.bloqueado{opacity:.35}
 
 .tab-content{display:none}
 .tab-content.active{display:block}
@@ -159,16 +160,22 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .clausula strong{color:#64748b}
 
 /* PRINT */
+@page{size:letter;margin:12mm}
 @media print{
   *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
-  body{background:#fff;padding:0;margin:0}
+  html,body{background:#fff!important;padding:0!important;margin:0!important}
   .card{display:none!important}
   .loading{display:none!important}
-  #pdf-report{display:block!important}
+  #pdf-report{display:block!important;position:static!important;width:100%!important}
+  .pdf-tabla tr,.pdf-box,.pdf-firma-l,.pdf-foto-item,.pdf-clausula,.pdf-cbox{page-break-inside:avoid;break-inside:avoid}
+  #pdf-fotos-sec,#pdf-recom-sec{page-break-inside:avoid;break-inside:avoid}
+  .pdf-tabla thead{display:table-header-group}
 }
 
 /* PDF */
-#pdf-report{display:none;font-family:Arial,Helvetica,sans-serif;padding:0;color:#1a2332;width:100%;font-size:9pt;line-height:1.45}
+#pdf-report{display:none}
+.pdf-doc{font-family:Arial,Helvetica,sans-serif;padding:0;margin:0;color:#1a2332;width:100%;font-size:9pt;line-height:1.45;background:#fff}
+.pdf-tabla tr,.pdf-box,.pdf-firma-l,.pdf-foto-item{page-break-inside:avoid;break-inside:avoid}
 .pdf-cbox{padding:10px 14px;border-radius:8px;text-align:center;margin-bottom:12px}
 .pdf-cbox.cv{background:#16a34a;color:#fff}
 .pdf-cbox.ca{background:#d97706;color:#fff}
@@ -201,7 +208,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .pdf-clausula{background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:8px 10px;font-size:7pt;color:#94a3b8;line-height:1.5;margin-bottom:8px}
 .pdf-clausula strong{color:#64748b}
 .pdf-pie{font-size:6.5pt;color:#cbd5e1;text-align:center;border-top:1px solid #f1f5f9;padding-top:6px}
-.pdf-foto-item img{width:100%;height:100px;object-fit:cover;border-radius:5px;border:1px solid #e2e8f0;display:block}
+.pdf-foto-item img{width:100%;height:130px;object-fit:cover;border-radius:5px;border:1px solid #e2e8f0;display:block}
 .pdf-foto-cap{font-size:7pt;color:#64748b;margin-top:2px;text-align:center}
 </style>
 </head>
@@ -365,7 +372,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         <div class="clabel">Concepto de Habitabilidad · ATC-20</div>
         <div class="cres" id="cres">PENDIENTE DE EVALUACIÓN</div>
         <p class="cdesc" id="cdesc">Complete la evaluación para generar el concepto.</p>
-        <div class="cdanos" id="cdanos" style="display:none">
+        <div id="fotos-estado" style="display:none;margin-top:10px;font-size:11px;font-weight:700;padding:7px 10px;border-radius:8px"></div>
+      <div class="cdanos" id="cdanos" style="display:none">
           <div class="cdanos-t">Elementos con daño registrado:</div>
           <div id="chips"></div>
         </div>
@@ -377,6 +385,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     </div>
     <div class="acciones">
       <button class="btn-a btn-green" onclick="exportarPDF()">↓ Exportar Informe PDF</button>
+      <button class="btn-a btn-dark" onclick="imprimirInforme()">🖨 Imprimir / Guardar como PDF</button>
       <button class="btn-a btn-slate" onclick="showTab('datos')">← Volver a editar</button>
     </div>
     <div class="clausula">
@@ -387,7 +396,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </div><!-- /card -->
 
 <!-- PDF REPORT -->
-<div id="pdf-report">
+<div id="pdf-report" class="pdf-doc">
   <table style="width:100%;border-collapse:collapse;border-bottom:3px solid #1a2332;padding-bottom:10px;margin-bottom:12px">
     <tr>
       <td style="vertical-align:top;padding-bottom:10px">
@@ -426,7 +435,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
   <div id="pdf-narrativa-sec" style="display:none;margin-bottom:12px">
     <div class="pdf-narrativa">
-      <h3>Análisis Técnico — Generado con IA</h3>
+      <h3 id="pdf-narrativa-h3">Análisis Técnico — Generado con IA</h3>
       <div id="pdf-narrativa-txt" class="pdf-narrativa-txt"></div>
     </div>
   </div>
@@ -453,6 +462,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <div id="pdf-fotos-sec" style="display:none;margin-bottom:12px">
     <div style="font-size:7pt;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.7px;border-bottom:1px solid #e2e8f0;padding-bottom:3px;margin-bottom:8px">Registro Fotográfico</div>
     <table style="width:100%;border-collapse:collapse" id="pdf-foto-grid"></table>
+    <div id="pdf-fotos-analisis" style="display:none;margin-top:8px">
+      <div class="pdf-box"><h3>Lectura técnica de las fotografías (IA)</h3><p id="pdf-fotos-analisis-txt" style="white-space:pre-wrap"></p></div>
+    </div>
   </div>
 
   <div id="pdf-recom-sec" style="display:none;margin-bottom:12px">
@@ -750,10 +762,17 @@ const GUIAS = {
 // =====================================================
 // ESTADO GLOBAL
 // =====================================================
+// sistemaSeleccionado = sistema CONFIRMADO (el que rige la evaluación y el informe).
+// sistemaPendiente = tarjeta tocada que aún no se ha confirmado. Separarlos evita
+// que una tarjeta tocada sin confirmar deje la app en un estado donde el concepto
+// se calcula sobre una lista de items vacía y sale "HABITABLE" falso.
 let sistemaSeleccionado = null;
+let sistemaPendiente = null;
 let estadoItems = {};
 let narrativaIA = '';
 let recomendacionesIA = '';
+let analisisFotosIA = '';
+let fotosAnalizadasIA = 0;
 let geminiKey = '';
 let geminiModel = 'gemini-3.1-flash-lite';
 const fotosData = [];
@@ -790,17 +809,42 @@ function renderSistemas() {
 function seleccionarSistema(key) {
   document.querySelectorAll('.sistema-btn').forEach(b => b.classList.remove('selected'));
   document.getElementById('sbtn-'+key).classList.add('selected');
-  sistemaSeleccionado = key;
+  sistemaPendiente = key;
   document.getElementById('btn-siguiente-sistema').disabled = false;
   document.getElementById('btn-siguiente-sistema').style.opacity = '1';
 }
 
+// La evaluación solo es válida cuando hay sistema confirmado Y los items
+// fueron construidos. Todo lo que emita un concepto debe comprobarlo.
+function evaluacionLista() {
+  return !!sistemaSeleccionado && Object.keys(estadoItems).length > 0;
+}
+
+function exigirEvaluacion() {
+  if (evaluacionLista()) return true;
+  alert('Antes de generar el concepto debes elegir el sistema estructural y pulsar "Confirmar sistema y continuar".');
+  showTab('sistema');
+  return false;
+}
+
+function actualizarBloqueoTabs() {
+  const listo = evaluacionLista();
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('bloqueado', i > 0 && !listo));
+}
+
 function confirmarSistema() {
-  if (!sistemaSeleccionado) return;
+  if (!sistemaPendiente) return;
+  // Cambiar de sistema reconstruye los items y borra lo evaluado: avisar antes.
+  if (sistemaSeleccionado && sistemaSeleccionado !== sistemaPendiente && Object.values(estadoItems).some(v => v !== 'Nulo')) {
+    if (!confirm('Cambiar de sistema estructural borrará los daños ya registrados.\n\n¿Continuar?')) return;
+  }
+  sistemaSeleccionado = sistemaPendiente;
   // Reiniciar estado
   estadoItems = {};
   narrativaIA = '';
   recomendacionesIA = '';
+  analisisFotosIA = '';
+  fotosAnalizadasIA = 0;
   // Actualizar badges
   const s = SISTEMAS[sistemaSeleccionado];
   ['datos','est'].forEach(sfx => {
@@ -809,6 +853,7 @@ function confirmarSistema() {
   });
   // Construir items de evaluación
   construirEvaluacion();
+  actualizarBloqueoTabs();
   showTab('datos');
 }
 
@@ -935,6 +980,19 @@ function actualizarProgreso() {
 // TABS
 // =====================================================
 function showTab(n) {
+  // Sin evaluación construida, las demás pestañas emitirían un concepto sobre
+  // cero items evaluados (saldría "HABITABLE" sin haber inspeccionado nada).
+  if (n !== 'sistema' && !evaluacionLista()) {
+    alert('Primero elige el sistema estructural y pulsa "Confirmar sistema y continuar".');
+    n = 'sistema';
+  }
+  // Al volver al selector, resaltar el sistema realmente confirmado.
+  if (n === 'sistema' && sistemaSeleccionado) {
+    sistemaPendiente = sistemaSeleccionado;
+    document.querySelectorAll('.sistema-btn').forEach(b => b.classList.remove('selected'));
+    const b = document.getElementById('sbtn-'+sistemaSeleccionado);
+    if (b) b.classList.add('selected');
+  }
   document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.getElementById('tab-'+n).classList.add('active');
@@ -956,6 +1014,8 @@ function todosItemsActuales() {
 
 function calcularConcepto() {
   const todos = todosItemsActuales();
+  // Red de seguridad: nunca emitir concepto sobre una evaluación no construida.
+  if (!evaluacionLista() || todos.length === 0) return null;
   let sevEst=false, sevNoEst=false, menor=false;
   const severos=[], menores=[];
   todos.forEach(item => {
@@ -995,11 +1055,13 @@ function mostrarConcepto(r) {
 }
 
 function calcularYVer() {
-  if (!sistemaSeleccionado) { alert('Primero selecciona el sistema estructural'); showTab('sistema'); return; }
+  if (!exigirEvaluacion()) return;
   const r = calcularConcepto();
+  if (!r) { alert('No hay elementos evaluados. Vuelve a confirmar el sistema estructural.'); showTab('sistema'); return; }
   mostrarConcepto(r);
   document.getElementById('narrativa-preview').style.display = 'none';
-  narrativaIA = ''; recomendacionesIA = '';
+  document.getElementById('fotos-estado').style.display = 'none';
+  narrativaIA = ''; recomendacionesIA = ''; analisisFotosIA = ''; fotosAnalizadasIA = 0;
   showTab('concepto');
 }
 
@@ -1079,19 +1141,50 @@ async function llamarGemini(prompt, imagenes=[]) {
     const mime = img.base64.split(';')[0].split(':')[1];
     parts.push({inline_data: {mime_type: mime, data: b64}});
   });
-  const body = {contents:[{parts}], generationConfig:{temperature:0.3, maxOutputTokens:1200}};
-  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${geminiKey}`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
-  if (!res.ok) { const e = await res.json(); throw new Error(e.error?.message || 'Error API ' + res.status); }
+  // Temperatura baja = respuestas más ceñidas a los hallazgos y menos texto genérico.
+  const body = {contents:[{parts}], generationConfig:{temperature:0.15, topP:0.8, maxOutputTokens:2048}};
+
+  // En campo la señal es mala: cortar a los 90 s en vez de quedarse colgado.
+  const ctrl = new AbortController();
+  const corte = setTimeout(() => ctrl.abort(), 90000);
+  let res;
+  try {
+    res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${geminiKey}`,
+      {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body), signal:ctrl.signal});
+  } catch(e) {
+    throw new Error(e.name === 'AbortError' ? 'La conexión tardó demasiado (90 s). Revisa la señal e intenta de nuevo.' : 'Sin conexión: ' + e.message);
+  } finally {
+    clearTimeout(corte);
+  }
+
+  if (!res.ok) {
+    let msg = 'Error API ' + res.status;
+    try { const e = await res.json(); msg = e.error?.message || msg; } catch(_) {}
+    if (res.status === 404) msg = `El modelo "${geminiModel}" no está disponible para tu API Key. Elige otro modelo arriba.`;
+    throw new Error(msg);
+  }
+
   const data = await res.json();
-  return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  const cand = data.candidates?.[0];
+  // Los modelos con razonamiento devuelven varias partes: unirlas todas en vez
+  // de leer solo parts[0], que puede venir vacía.
+  const txt = (cand?.content?.parts || []).map(p => p.text).filter(Boolean).join('').trim();
+  if (!txt) {
+    if (data.promptFeedback?.blockReason) throw new Error('Solicitud bloqueada por el filtro de contenido (' + data.promptFeedback.blockReason + ')');
+    if (cand?.finishReason === 'MAX_TOKENS') throw new Error('La respuesta se cortó por longitud. Intenta con otro modelo.');
+    throw new Error('El modelo no devolvió texto' + (cand?.finishReason ? ' (' + cand.finishReason + ')' : ''));
+  }
+  return txt;
 }
 
 async function generarConIA() {
   if (!geminiKey) { alert('Ingresa tu API Key de Gemini primero'); return; }
-  if (!sistemaSeleccionado) { alert('Primero selecciona el sistema estructural'); showTab('sistema'); return; }
+  if (!exigirEvaluacion()) return;
 
   const r = calcularConcepto();
+  if (!r) { alert('No hay una evaluación válida.'); showTab('sistema'); return; }
   mostrarConcepto(r);
+  document.getElementById('fotos-estado').style.display = 'none';
   showTab('concepto');
 
   const todos = todosItemsActuales();
@@ -1106,6 +1199,7 @@ async function generarConIA() {
 
   // PASO 1: Si hay fotos, analizarlas primero por separado
   let descripcionFotos = '';
+  let fotosAnalizadas = 0;
   if (fotosData.length > 0) {
     mostrarLoading('Analizando fotografías...', `${fotosData.length} foto(s) encontrada(s)`);
     const promptFotos = `Eres un arquitecto experto en patología de edificaciones post-sismo. Analiza ${fotosData.length === 1 ? 'esta fotografía' : 'estas ' + fotosData.length + ' fotografías'} tomadas durante una inspección post-sismo de una edificación con sistema estructural de ${sistNombre}.
@@ -1115,28 +1209,43 @@ Para ${fotosData.length === 1 ? 'la fotografía' : 'cada fotografía'} describe 
 - Tipo y patrón de daño visible (grietas, fisuras, desprendimientos, deformaciones)
 - Nivel de severidad observado visualmente
 
-Sé preciso y técnico. Solo describe lo que ves objetivamente. No inventes daños que no sean visibles. Sin markdown ni asteriscos.`;
+Numera cada fotografía como "Foto 1:", "Foto 2:", etc., en el mismo orden en que te las entrego.
 
+Sé preciso y técnico. Solo describe lo que ves objetivamente. Si una fotografía no permite identificar daños, dilo explícitamente en lugar de suponerlos. No inventes daños que no sean visibles. Sin markdown ni asteriscos.`;
+
+    // Un fallo aquí NO puede ser silencioso: el informe saldría sin las fotos
+    // analizadas y el inspector creería que sí se tuvieron en cuenta.
     try {
-      descripcionFotos = await llamarGemini(promptFotos, fotosData);
+      descripcionFotos = (await llamarGemini(promptFotos, fotosData)).trim();
+      if (!descripcionFotos) throw new Error('El modelo no devolvió ninguna descripción');
+      fotosAnalizadas = fotosData.length;
     } catch(err) {
-      descripcionFotos = '';
+      ocultarLoading();
       console.warn('Error analizando fotos:', err.message);
+      const seguir = confirm('⚠️ No se pudieron analizar las ' + fotosData.length + ' fotografía(s):\n\n' +
+        err.message + '\n\nAceptar: generar el informe SIN el análisis de las fotos.\n' +
+        'Cancelar: detener para reintentar o cambiar de modelo.');
+      if (!seguir) return;
+      descripcionFotos = '';
+      mostrarLoading('Generando informe técnico...','Sin análisis de fotografías');
     }
   }
 
   // PASO 2: Generar el informe narrativo completo
   mostrarLoading('Generando informe técnico...', 'Integrando hallazgos y análisis');
 
+  // Hallazgos numerados y con etiqueta: permite exigirle al modelo que los
+  // nombre uno por uno y detectar si se inventa o se salta alguno.
   const listaSeveros = hallazgosSeveros.length > 0
-    ? hallazgosSeveros.map(i => `  * ${i.n}: ${i.d}`).join('\n')
+    ? hallazgosSeveros.map((i,n) => `  [S${n+1}] ${i.n} (${i.c?'estructural':'no estructural'}) — indicios típicos: ${i.d}`).join('\n')
     : '  (Ninguno)';
   const listaMenores = hallazgosMenores.length > 0
-    ? hallazgosMenores.map(i => `  * ${i.n}: ${i.d}`).join('\n')
+    ? hallazgosMenores.map((i,n) => `  [L${n+1}] ${i.n} (${i.c?'estructural':'no estructural'}) — indicios típicos: ${i.d}`).join('\n')
     : '  (Ninguno)';
   const listaMedidas = medidas.length > 0
-    ? medidas.map(m => `  * ${m}`).join('\n')
+    ? medidas.map((m,n) => `  [M${n+1}] ${m}`).join('\n')
     : '  (Ninguna seleccionada)';
+  const nombresObligatorios = [...hallazgosSeveros, ...hallazgosMenores].map(i => i.n);
 
   const prompt = `Eres un arquitecto y evaluador técnico con experiencia en inspecciones post-sismo. Redacta el análisis técnico de un informe de habitabilidad usando el método ATC-20 y la NSR-10 colombiana.
 
@@ -1165,24 +1274,31 @@ ${descripcionFotos ? `ANÁLISIS DE FOTOGRAFÍAS DE CAMPO:\n${descripcionFotos}` 
 
 INSTRUCCIONES DE REDACCIÓN — SÍGUELAS CON PRECISIÓN:
 
-1. ANÁLISIS (3 párrafos máximo):
-   - Párrafo 1: Describe la edificación y el contexto de la inspección. Menciona el sistema estructural y su comportamiento general ante el sismo.
-   - Párrafo 2: Describe los hallazgos concretos identificados. Basa el texto ÚNICAMENTE en los daños listados arriba. Si hay fotos, integra lo observado en ellas. No menciones daños que no estén en la lista.
-   - Párrafo 3: Explica el concepto de habitabilidad emitido y qué significa para los ocupantes en términos prácticos y comprensibles.
+1. ANÁLISIS (exactamente 3 párrafos):
+   - Párrafo 1: La edificación y el contexto de la inspección. Menciona el sistema estructural (${sistNombre}) y su comportamiento general ante el sismo. Máximo 4 frases.
+   - Párrafo 2: Los hallazgos. OBLIGATORIO: menciona por su NOMBRE EXACTO cada elemento de las listas [S] y [L], sin excepción y sin agrupar. Para cada uno di dónde está el riesgo y por qué importa en este sistema estructural. ${descripcionFotos ? 'Integra además lo observado en las fotografías.' : ''}
+   - Párrafo 3: Qué significa el concepto "${concepto}" en términos prácticos para los ocupantes.
 
 2. RECOMENDACIONES (escribe exactamente la palabra "RECOMENDACIONES:" como separador):
-   - Lista solo las recomendaciones que se justifican directamente por los hallazgos encontrados.
-   - Priorízalas por urgencia: primero seguridad de personas, luego estabilidad estructural, luego seguimiento.
-   - Si los daños son leves, las recomendaciones deben ser proporcionales. No exageres.
-   - Máximo 5 recomendaciones. Si con 3 es suficiente, usa 3.
+   - Cada recomendación debe poder rastrearse a un hallazgo [S], [L] o medida [M] concreta de las listas.
+   - Ordénalas por urgencia: primero seguridad de personas, luego estabilidad estructural, luego seguimiento.
+   - Proporcionales al daño: si todo es leve, no propongas evacuaciones ni apuntalamientos.
+   - Entre 3 y 5 recomendaciones, numeradas 1., 2., 3.
    - Lenguaje técnico pero comprensible para propietarios y no especialistas.
 
+VERIFICACIÓN OBLIGATORIA ANTES DE RESPONDER:
+${nombresObligatorios.length
+  ? `a) ¿Aparecen nombrados en el párrafo 2 TODOS estos elementos? ${nombresObligatorios.map(n=>'"'+n+'"').join(', ')}. Si falta alguno, reescribe el párrafo.
+b) ¿Mencionaste algún daño que NO esté en las listas [S] y [L]? Si sí, elimínalo.`
+  : `a) Las listas de hallazgos están vacías: NO describas ningún daño. Indica que no se identificaron daños que comprometan la seguridad y limita las recomendaciones a monitoreo y verificación durante las réplicas.`}
+c) ¿El texto sirve igual para cualquier otro edificio? Si sí, es demasiado genérico: reescríbelo con los datos concretos de este caso.
+
 REGLAS ABSOLUTAS:
-- Sin markdown, sin asteriscos, sin negritas, sin guiones decorativos.
+- Sin markdown, sin asteriscos, sin negritas, sin guiones decorativos, sin títulos.
 - Texto plano con párrafos separados por línea en blanco.
 - No digas que el informe fue elaborado por un especialista en estructuras.
-- No repitas los datos del encabezado.
-- No inventes daños ni recomendaciones que no correspondan a los hallazgos.
+- No repitas los datos del encabezado ni cites los códigos [S1], [L1], [M1] en el texto final.
+- No inventes daños, mediciones, anchos de fisura ni ubicaciones que no estén en los datos entregados.
 - Tono profesional, directo, empático. Es una situación de emergencia.`;
 
   try {
@@ -1190,8 +1306,11 @@ REGLAS ABSOLUTAS:
     const partes = respuesta.split(/RECOMENDACIONES:/i);
     narrativaIA = partes[0].trim();
     recomendacionesIA = partes[1] ? partes[1].trim() : '';
+    analisisFotosIA = descripcionFotos;
+    fotosAnalizadasIA = fotosAnalizadas;
     document.getElementById('narrativa-txt').innerText = narrativaIA;
     document.getElementById('narrativa-preview').style.display = 'block';
+    mostrarEstadoFotos();
     ocultarLoading();
   } catch(err) {
     ocultarLoading();
@@ -1201,6 +1320,20 @@ REGLAS ABSOLUTAS:
     else if (esQuota) alert('⚠️ Cuota agotada para ' + geminiModel + '\n\nCambia a otro modelo con cuota disponible.');
     else alert('❌ Error: ' + err.message + '\n\nVerifica tu API Key y conexión a internet.');
   }
+}
+
+// Aviso visible de si la IA leyó o no las fotografías del registro.
+function mostrarEstadoFotos() {
+  const el = document.getElementById('fotos-estado');
+  if (!fotosData.length) { el.style.display = 'none'; return; }
+  if (fotosAnalizadasIA) {
+    el.textContent = `✅ ${fotosAnalizadasIA} fotografía(s) analizadas por la IA e integradas al informe`;
+    el.style.background = '#dcfce7'; el.style.color = '#15803d';
+  } else {
+    el.textContent = `⚠️ Las ${fotosData.length} fotografía(s) NO fueron analizadas — el informe se generó solo con los datos marcados`;
+    el.style.background = '#fef3c7'; el.style.color = '#92400e';
+  }
+  el.style.display = 'block';
 }
 
 // =====================================================
@@ -1216,10 +1349,11 @@ function ocultarLoading() { document.getElementById('loading').classList.remove(
 // =====================================================
 // EXPORTAR PDF
 // =====================================================
-async function exportarPDF() {
-  if (!sistemaSeleccionado) { alert('Primero completa la evaluación'); return; }
-  mostrarLoading('Preparando el informe PDF...','');
+// Rellena el bloque #pdf-report con los datos actuales. Lo usan tanto
+// la exportación con html2pdf como la impresión nativa del navegador.
+function prepararInforme() {
   const r = calcularConcepto();
+  if (!r) { alert('No hay una evaluación válida para exportar.'); showTab('sistema'); return false; }
   const todos = todosItemsActuales();
   const fecha = document.getElementById('fecha').value;
   const fechaLeg = fecha ? new Date(fecha).toLocaleString('es-CO',{dateStyle:'full',timeStyle:'short'}) : '—';
@@ -1268,37 +1402,134 @@ async function exportarPDF() {
 
   if (fotosData.length > 0) {
     const grid = document.getElementById('pdf-foto-grid');
-    grid.innerHTML = '<tr>' + fotosData.map((f,i) => `<td style="width:33%;padding:0 4px;vertical-align:top"><div class="pdf-foto-item"><img src="${f.base64}"><div class="pdf-foto-cap">Foto ${i+1}</div></div></td>`).join('') + '</tr>';
+    // Siempre 3 celdas: así una o dos fotos no se estiran a todo el ancho.
+    let celdas = fotosData.map((f,i) => `<td style="width:33.33%;padding:0 4px;vertical-align:top"><div class="pdf-foto-item"><img src="${f.base64}"><div class="pdf-foto-cap">Foto ${i+1}</div></div></td>`);
+    while (celdas.length < 3) celdas.push('<td style="width:33.33%;padding:0 4px"></td>');
+    grid.innerHTML = '<tr>' + celdas.join('') + '</tr>';
     document.getElementById('pdf-fotos-sec').style.display = 'block';
   } else {
     document.getElementById('pdf-fotos-sec').style.display = 'none';
   }
 
-  ocultarLoading();
-  await new Promise(res => setTimeout(res, 400));
+  // Deja constancia en el informe de si la IA leyó realmente las fotografías.
+  const secLect = document.getElementById('pdf-fotos-analisis');
+  if (analisisFotosIA && fotosData.length) {
+    document.getElementById('pdf-fotos-analisis-txt').textContent = analisisFotosIA;
+    secLect.style.display = 'block';
+  } else {
+    secLect.style.display = 'none';
+  }
+  const cab = document.getElementById('pdf-narrativa-h3');
+  if (cab) cab.textContent = fotosAnalizadasIA
+    ? `Análisis Técnico — Generado con IA (incluye lectura de ${fotosAnalizadasIA} fotografía${fotosAnalizadasIA>1?'s':''})`
+    : 'Análisis Técnico — Generado con IA';
 
-  const nombre = `ConceptoHabitabilidad_${(document.getElementById('nombreEdificio').value||'Edificio').replace(/\s+/g,'_')}.pdf`;
+  return r;
+}
 
-  // Clonar solo el pdf-report a un contenedor limpio para evitar página en blanco
+function nombreArchivo() {
+  const edif = (document.getElementById('nombreEdificio').value || 'Edificio')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^\w\s-]/g,'').trim().replace(/\s+/g,'_') || 'Edificio';
+  const f = new Date();
+  const p = n => String(n).padStart(2,'0');
+  return `ConceptoHabitabilidad_${edif}_${f.getFullYear()}${p(f.getMonth()+1)}${p(f.getDate())}.pdf`;
+}
+
+// Espera a que las imágenes del informe estén decodificadas antes de rasterizar.
+function esperarImagenes(el) {
+  const imgs = [...el.querySelectorAll('img')];
+  if (!imgs.length) return Promise.resolve();
+  return Promise.all(imgs.map(img => {
+    if (img.complete && img.naturalHeight) return Promise.resolve();
+    return new Promise(res => {
+      img.onload = img.onerror = res;
+      setTimeout(res, 5000);
+    });
+  }));
+}
+
+// Impresión nativa: texto vectorial, saltos de página correctos y sin
+// dependencia del CDN. Es el respaldo si html2pdf falla o no cargó.
+function imprimirInforme() {
+  if (!exigirEvaluacion()) return;
+  if (!prepararInforme()) return;
+  const scrollY = window.scrollY;
+  setTimeout(() => { window.print(); window.scrollTo(0, scrollY); }, 150);
+}
+
+async function exportarPDF() {
+  if (!exigirEvaluacion()) return;
+  if (!prepararInforme()) return;
+
+  if (window.__h2pError || typeof html2pdf === 'undefined') {
+    alert('No se pudo cargar el generador de PDF (sin conexión a internet).\n\nSe abrirá el diálogo de impresión: elige "Guardar como PDF".');
+    imprimirInforme();
+    return;
+  }
+
+  mostrarLoading('Generando el informe PDF...','Esto puede tardar unos segundos');
+
+  // html2canvas clona el documento y lo desplaza al mismo scroll de la página:
+  // si el usuario exporta con la página desplazada, el informe sale corrido
+  // hacia abajo y recortado (o en blanco si el scroll es grande). Se captura
+  // siempre desde el tope y luego se devuelve el scroll a su sitio.
+  const scrollPrevio = window.scrollY || document.documentElement.scrollTop || 0;
+  window.scrollTo(0, 0);
+  await new Promise(res => setTimeout(res, 120));
+
   const original = document.getElementById('pdf-report');
+  await esperarImagenes(original);
+
+  // El informe se rasteriza desde un clon en flujo normal (no position:fixed:
+  // un elemento fijo no aporta altura al contenedor de html2pdf y el PDF salía
+  // en blanco). El wrapper lo mantiene fuera de la pantalla sin sacarlo del flujo.
+  const wrapper = document.createElement('div');
+  wrapper.setAttribute('aria-hidden','true');
+  wrapper.style.cssText = 'position:absolute;left:-10000px;top:0;width:760px;background:#fff;z-index:-1';
+
   const clone = original.cloneNode(true);
-  clone.style.cssText = 'display:block;position:fixed;left:-9999px;top:0;width:750px;padding:0;margin:0;background:white;font-family:Arial,Helvetica,sans-serif;font-size:9pt;color:#1a2332;line-height:1.45';
+  clone.removeAttribute('id');
+  clone.querySelectorAll('[id]').forEach(n => n.removeAttribute('id'));
+  clone.style.cssText = 'display:block;position:static;width:100%;margin:0;padding:0;background:#fff';
 
-  // Copiar estilos de clases al clone (inline) para que html2pdf los capture
-  document.body.appendChild(clone);
-
-  const opt = {
-    margin: [0.45, 0.45, 0.45, 0.45],
-    filename: nombre,
-    image: {type:'jpeg', quality:0.95},
-    html2canvas: {scale:2, useCORS:true, allowTaint:true, letterRendering:true, backgroundColor:'#ffffff'},
-    jsPDF: {unit:'in', format:'letter', orientation:'portrait'}
-  };
+  wrapper.appendChild(clone);
+  document.body.appendChild(wrapper);
 
   try {
-    await html2pdf().set(opt).from(clone).save();
+    await esperarImagenes(clone);
+
+    // Limita el total de píxeles del lienzo: en iPhone/iPad un canvas muy
+    // grande se devuelve vacío o negro.
+    const alto = clone.scrollHeight || 1;
+    const escala = Math.max(1, Math.min(2, Math.sqrt(12000000 / (760 * alto))));
+
+    const opt = {
+      margin: [0.45, 0.45, 0.45, 0.45],
+      filename: nombreArchivo(),
+      image: {type:'jpeg', quality:0.98},
+      html2canvas: {scale:escala, useCORS:true, backgroundColor:'#ffffff', logging:false, imageTimeout:15000, scrollX:0, scrollY:0, windowWidth:document.documentElement.clientWidth, windowHeight:document.documentElement.clientHeight},
+      jsPDF: {unit:'in', format:'letter', orientation:'portrait', compress:true},
+      pagebreak: {mode:['css','legacy'], avoid:['tr','.pdf-box','.pdf-firma-l','.pdf-foto-item','.pdf-clausula']}
+    };
+
+    await html2pdf().set(opt).from(clone)
+      .toCanvas().then(function() {
+        const c = this.prop.canvas;
+        if (!c || !c.width || !c.height) throw new Error('El informe se generó vacío');
+      })
+      .toPdf().save();
+
+    ocultarLoading();
+  } catch (err) {
+    ocultarLoading();
+    console.error('Error exportando PDF:', err);
+    if (confirm('No se pudo generar el PDF (' + (err.message || err) + ').\n\n¿Abrir el diálogo de impresión para guardarlo como PDF?')) {
+      imprimirInforme();
+    }
   } finally {
-    document.body.removeChild(clone);
+    if (wrapper.parentNode) document.body.removeChild(wrapper);
+    window.scrollTo(0, scrollPrevio);
   }
 }
 
