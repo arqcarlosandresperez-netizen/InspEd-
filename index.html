@@ -484,9 +484,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <div id="pdf-fotos-sec" style="display:none;margin-bottom:12px">
     <div style="font-size:7pt;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.7px;border-bottom:1px solid #e2e8f0;padding-bottom:3px;margin-bottom:8px">Registro Fotográfico</div>
     <table style="width:100%;border-collapse:collapse" id="pdf-foto-grid"></table>
-    <div id="pdf-fotos-analisis" style="display:none;margin-top:8px">
-      <div class="pdf-box"><h3>Lectura técnica de las fotografías (IA)</h3><p id="pdf-fotos-analisis-txt" style="white-space:pre-wrap"></p></div>
-    </div>
   </div>
 
   <div id="pdf-recom-sec" style="display:none;margin-bottom:12px">
@@ -793,7 +790,6 @@ let sistemaPendiente = null;
 let estadoItems = {};
 let narrativaIA = '';
 let recomendacionesIA = '';
-let analisisFotosIA = '';
 let fotosAnalizadasIA = 0;
 let generadoConIA = false;
 let geminiKey = '';
@@ -866,7 +862,6 @@ function confirmarSistema() {
   estadoItems = {};
   narrativaIA = '';
   recomendacionesIA = '';
-  analisisFotosIA = '';
   fotosAnalizadasIA = 0;
   // Actualizar badges
   const s = SISTEMAS[sistemaSeleccionado];
@@ -1083,7 +1078,7 @@ function calcularYVer() {
   if (!r) { alert('No hay elementos evaluados. Vuelve a confirmar el sistema estructural.'); showTab('sistema'); return; }
   mostrarConcepto(r);
   document.getElementById('fotos-estado').style.display = 'none';
-  narrativaIA = ''; recomendacionesIA = ''; analisisFotosIA = ''; fotosAnalizadasIA = 0;
+  narrativaIA = ''; recomendacionesIA = ''; fotosAnalizadasIA = 0;
   generadoConIA = false;
   document.getElementById('narrativa-edit').value = '';
   document.getElementById('recom-edit').value = '';
@@ -1385,7 +1380,6 @@ REGLAS ABSOLUTAS:
     const partes = respuesta.split(/RECOMENDACIONES:/i);
     narrativaIA = partes[0].trim();
     recomendacionesIA = partes[1] ? partes[1].trim() : '';
-    analisisFotosIA = descripcionFotos;
     fotosAnalizadasIA = fotosAnalizadas;
     generadoConIA = true;
     document.getElementById('narrativa-edit').value = narrativaIA;
@@ -1534,14 +1528,7 @@ function prepararInforme() {
     document.getElementById('pdf-fotos-sec').style.display = 'none';
   }
 
-  // Deja constancia en el informe de si la IA leyó realmente las fotografías.
-  const secLect = document.getElementById('pdf-fotos-analisis');
-  if (analisisFotosIA && fotosData.length) {
-    document.getElementById('pdf-fotos-analisis-txt').textContent = analisisFotosIA;
-    secLect.style.display = 'block';
-  } else {
-    secLect.style.display = 'none';
-  }
+  // La lectura de las fotos alimenta el análisis técnico; no se imprime aparte.
   const cab = document.getElementById('pdf-narrativa-h3');
   if (cab) {
     if (!generadoConIA) {
