@@ -142,6 +142,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .chip-r{background:#fee2e2;color:#dc2626}
 .chip-a{background:#fef3c7;color:#92400e}
 
+/* EDITOR DEL ANÁLISIS */
+.lbl-edit{display:block;font-size:10px;font-weight:700;color:#0369a1;text-transform:uppercase;letter-spacing:.5px;margin:9px 0 4px}
+.ta-edit{width:100%;padding:10px 12px;border:1.5px solid #bae6fd;border-radius:10px;font-size:16px;font-family:inherit;color:#0c4a6e;background:#fff;line-height:1.55;resize:vertical;outline:none;min-height:76px;-webkit-appearance:none}
+.ta-edit:focus{border-color:#0284c7;background:#fff}
+
 /* LOADING */
 .loading{display:none;position:fixed;inset:0;background:rgba(26,35,50,.7);z-index:999;align-items:center;justify-content:center;flex-direction:column;gap:12px}
 .loading.show{display:flex}
@@ -389,8 +394,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         </div>
       </div>
       <div id="narrativa-preview" style="display:none;margin-top:12px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:12px;padding:12px">
-        <div style="font-size:10px;font-weight:700;color:#0369a1;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">✨ Análisis generado por IA</div>
-        <div id="narrativa-txt" style="font-size:12px;color:#0c4a6e;line-height:1.7"></div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div id="narrativa-origen" style="font-size:10px;font-weight:700;color:#0369a1;text-transform:uppercase;letter-spacing:.5px">✨ Análisis generado por IA</div>
+          <button id="btn-restaurar-ia" onclick="restaurarTextoIA()" style="display:none;margin-left:auto;font-size:10px;font-weight:700;color:#0369a1;background:#e0f2fe;border:1px solid #bae6fd;border-radius:20px;padding:5px 10px;cursor:pointer;font-family:inherit">↺ Restaurar</button>
+        </div>
+        <p style="font-size:11px;color:#0369a1;margin:6px 0 2px;line-height:1.5">Corrige el texto si hace falta: lo que quede aquí es lo que sale en el PDF.</p>
+        <label class="lbl-edit" for="narrativa-edit">Análisis técnico</label>
+        <textarea id="narrativa-edit" class="ta-edit" rows="8" oninput="autoAlto(this)" placeholder="Descripción de la edificación, hallazgos y significado del concepto..."></textarea>
+        <label class="lbl-edit" for="recom-edit">Recomendaciones</label>
+        <textarea id="recom-edit" class="ta-edit" rows="5" oninput="autoAlto(this)" placeholder="1. ...&#10;2. ..."></textarea>
       </div>
     </div>
     <div class="acciones">
@@ -783,6 +795,7 @@ let narrativaIA = '';
 let recomendacionesIA = '';
 let analisisFotosIA = '';
 let fotosAnalizadasIA = 0;
+let generadoConIA = false;
 let geminiKey = '';
 let geminiModel = 'gemini-3.1-flash-lite';
 const fotosData = [];
@@ -1069,9 +1082,12 @@ function calcularYVer() {
   const r = calcularConcepto();
   if (!r) { alert('No hay elementos evaluados. Vuelve a confirmar el sistema estructural.'); showTab('sistema'); return; }
   mostrarConcepto(r);
-  document.getElementById('narrativa-preview').style.display = 'none';
   document.getElementById('fotos-estado').style.display = 'none';
   narrativaIA = ''; recomendacionesIA = ''; analisisFotosIA = ''; fotosAnalizadasIA = 0;
+  generadoConIA = false;
+  document.getElementById('narrativa-edit').value = '';
+  document.getElementById('recom-edit').value = '';
+  mostrarEditorAnalisis(false);
   showTab('concepto');
 }
 
@@ -1371,8 +1387,10 @@ REGLAS ABSOLUTAS:
     recomendacionesIA = partes[1] ? partes[1].trim() : '';
     analisisFotosIA = descripcionFotos;
     fotosAnalizadasIA = fotosAnalizadas;
-    document.getElementById('narrativa-txt').innerText = narrativaIA;
-    document.getElementById('narrativa-preview').style.display = 'block';
+    generadoConIA = true;
+    document.getElementById('narrativa-edit').value = narrativaIA;
+    document.getElementById('recom-edit').value = recomendacionesIA;
+    mostrarEditorAnalisis(true);
     mostrarEstadoFotos();
     ocultarLoading();
   } catch(err) {
@@ -1383,6 +1401,37 @@ REGLAS ABSOLUTAS:
     else if (esQuota) alert('⚠️ Cuota agotada para ' + geminiModel + '\n\nCambia a otro modelo con cuota disponible.');
     else alert('❌ Error: ' + err.message + '\n\nVerifica tu API Key y conexión a internet.');
   }
+}
+
+// El textarea crece con el contenido: en móvil no se puede depender del scroll interno.
+function autoAlto(t) {
+  if (!t) return;
+  t.style.height = 'auto';
+  t.style.height = (t.scrollHeight + 2) + 'px';
+}
+
+function textoAnalisisActual() { return (document.getElementById('narrativa-edit').value || '').trim(); }
+function textoRecomActual() { return (document.getElementById('recom-edit').value || '').trim(); }
+
+// Abre el editor del análisis. conIA=false cuando el texto lo escribe el evaluador.
+function mostrarEditorAnalisis(conIA) {
+  document.getElementById('narrativa-origen').textContent = conIA
+    ? '✨ Análisis de la IA — editable'
+    : '📝 Análisis del evaluador — editable';
+  document.getElementById('btn-restaurar-ia').style.display = conIA ? 'block' : 'none';
+  document.getElementById('narrativa-preview').style.display = 'block';
+  autoAlto(document.getElementById('narrativa-edit'));
+  autoAlto(document.getElementById('recom-edit'));
+}
+
+// Devuelve el texto tal como lo entregó la IA, por si una corrección se torció.
+function restaurarTextoIA() {
+  if (!narrativaIA && !recomendacionesIA) return;
+  if (!confirm('¿Descartar tus cambios y volver al texto original de la IA?')) return;
+  document.getElementById('narrativa-edit').value = narrativaIA;
+  document.getElementById('recom-edit').value = recomendacionesIA;
+  autoAlto(document.getElementById('narrativa-edit'));
+  autoAlto(document.getElementById('recom-edit'));
 }
 
 // Aviso visible de si la IA leyó o no las fotografías del registro.
@@ -1436,12 +1485,20 @@ function prepararInforme() {
   document.getElementById('pdf-cres').textContent = r.texto;
   document.getElementById('pdf-cdesc').textContent = r.desc;
 
-  if (narrativaIA) {
-    document.getElementById('pdf-narrativa-txt').textContent = narrativaIA;
+  // El informe toma SIEMPRE lo que hay en el editor: si el evaluador corrigió el
+  // texto de la IA, manda su versión corregida.
+  const textoAnalisis = textoAnalisisActual();
+  const textoRecom = textoRecomActual();
+  if (textoAnalisis) {
+    document.getElementById('pdf-narrativa-txt').textContent = textoAnalisis;
     document.getElementById('pdf-narrativa-sec').style.display = 'block';
-    if (recomendacionesIA) { document.getElementById('pdf-recom-txt').textContent = recomendacionesIA; document.getElementById('pdf-recom-sec').style.display = 'block'; }
   } else {
     document.getElementById('pdf-narrativa-sec').style.display = 'none';
+  }
+  if (textoRecom) {
+    document.getElementById('pdf-recom-txt').textContent = textoRecom;
+    document.getElementById('pdf-recom-sec').style.display = 'block';
+  } else {
     document.getElementById('pdf-recom-sec').style.display = 'none';
   }
 
@@ -1486,9 +1543,15 @@ function prepararInforme() {
     secLect.style.display = 'none';
   }
   const cab = document.getElementById('pdf-narrativa-h3');
-  if (cab) cab.textContent = fotosAnalizadasIA
-    ? `Análisis Técnico — Generado con IA (incluye lectura de ${fotosAnalizadasIA} fotografía${fotosAnalizadasIA>1?'s':''})`
-    : 'Análisis Técnico — Generado con IA';
+  if (cab) {
+    if (!generadoConIA) {
+      cab.textContent = 'Análisis Técnico';
+    } else {
+      const editado = textoAnalisis !== narrativaIA.trim() || textoRecom !== recomendacionesIA.trim();
+      const fotos = fotosAnalizadasIA ? ` (incluye lectura de ${fotosAnalizadasIA} fotografía${fotosAnalizadasIA>1?'s':''})` : '';
+      cab.textContent = 'Análisis Técnico — Generado con IA' + (editado ? ' y revisado por el evaluador' : '') + fotos;
+    }
+  }
 
   return r;
 }
