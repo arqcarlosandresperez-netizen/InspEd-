@@ -351,7 +351,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     </div>
     <div class="section">
       <div class="sec-title"><span class="sec-num">📷</span>Registro Fotográfico</div>
-      <p style="font-size:12px;color:#64748b;margin-bottom:10px">Hasta 3 fotos de los daños. La IA las analizará para enriquecer el informe.</p>
+      <p style="font-size:12px;color:#64748b;margin-bottom:10px">Hasta 6 fotos de los daños. La IA las analizará para enriquecer el informe.</p>
       <div id="fotos-prev" class="foto-previews"></div>
       <!-- Dos entradas separadas: con capture el móvil abre la cámara directo y
            esconde la galería, así que las fotos ya tomadas necesitan su propio input. -->
@@ -1110,7 +1110,7 @@ if (savedKey) { geminiKey = savedKey; document.getElementById('gemini-key').valu
 // =====================================================
 // FOTOS
 // =====================================================
-const MAX_FOTOS = 3;
+const MAX_FOTOS = 6;
 
 // Una foto de móvil son 12 MP y varios MB. Sin reducirla, tres fotos superan el
 // límite de la petición a Gemini y disparan la memoria del lienzo del PDF.
@@ -1290,10 +1290,10 @@ Sé preciso y técnico. Solo describe lo que ves objetivamente. Si una fotograf�
   // Hallazgos numerados y con etiqueta: permite exigirle al modelo que los
   // nombre uno por uno y detectar si se inventa o se salta alguno.
   const listaSeveros = hallazgosSeveros.length > 0
-    ? hallazgosSeveros.map((i,n) => `  [S${n+1}] ${i.n} (${i.c?'estructural':'no estructural'}) — indicios típicos: ${i.d}`).join('\n')
+    ? hallazgosSeveros.map((i,n) => `  [S${n+1}] ${i.n} — ${i.c?'elemento estructural':'elemento no estructural'} — severidad: SEVERO`).join('\n')
     : '  (Ninguno)';
   const listaMenores = hallazgosMenores.length > 0
-    ? hallazgosMenores.map((i,n) => `  [L${n+1}] ${i.n} (${i.c?'estructural':'no estructural'}) — indicios típicos: ${i.d}`).join('\n')
+    ? hallazgosMenores.map((i,n) => `  [L${n+1}] ${i.n} — ${i.c?'elemento estructural':'elemento no estructural'} — severidad: LEVE`).join('\n')
     : '  (Ninguno)';
   const listaMedidas = medidas.length > 0
     ? medidas.map((m,n) => `  [M${n+1}] ${m}`).join('\n')
@@ -1311,10 +1311,10 @@ DATOS DE LA INSPECCIÓN:
 - Año aprox.: ${document.getElementById('ano').value || 'No especificado'}
 - CONCEPTO EMITIDO: ${concepto}
 
-DAÑOS SEVEROS O CRÍTICOS IDENTIFICADOS:
+ELEMENTOS CON DAÑO SEVERO (solo el elemento y su nivel, NO el tipo de daño):
 ${listaSeveros}
 
-DAÑOS LEVES O SUPERFICIALES IDENTIFICADOS:
+ELEMENTOS CON DAÑO LEVE (solo el elemento y su nivel, NO el tipo de daño):
 ${listaMenores}
 
 MEDIDAS INMEDIATAS REQUERIDAS:
@@ -1325,11 +1325,20 @@ ${obs || '(Sin observaciones adicionales)'}
 
 ${descripcionFotos ? `ANÁLISIS DE FOTOGRAFÍAS DE CAMPO:\n${descripcionFotos}` : ''}
 
+QUÉ SABES Y QUÉ NO SABES — REGLA CENTRAL:
+Las listas de arriba dicen ÚNICAMENTE qué elemento resultó afectado y con qué nivel de
+severidad. NO dicen qué tipo de daño tiene: no sabes si son grietas en X, diagonales,
+escalonadas, abombamientos, aplastamientos ni desprendimientos, ni su ancho, ni su
+ubicación dentro del edificio.
+Las ÚNICAS fuentes de detalle concreto son las OBSERVACIONES DEL INSPECTOR${descripcionFotos ? ' y el ANÁLISIS DE FOTOGRAFÍAS' : ''}.
+Si un tipo de daño, medida o ubicación no aparece literalmente en esas fuentes, NO lo
+menciones: describe el elemento afectado y su nivel de severidad en términos generales.
+
 INSTRUCCIONES DE REDACCIÓN — SÍGUELAS CON PRECISIÓN:
 
 1. ANÁLISIS (exactamente 3 párrafos):
    - Párrafo 1: La edificación y el contexto de la inspección. Menciona el sistema estructural (${sistNombre}) y su comportamiento general ante el sismo. Máximo 4 frases.
-   - Párrafo 2: Los hallazgos. OBLIGATORIO: menciona por su NOMBRE EXACTO cada elemento de las listas [S] y [L], sin excepción y sin agrupar. Para cada uno di dónde está el riesgo y por qué importa en este sistema estructural. ${descripcionFotos ? 'Integra además lo observado en las fotografías.' : ''}
+   - Párrafo 2: Los hallazgos. OBLIGATORIO: menciona por su NOMBRE EXACTO cada elemento de las listas [S] y [L], sin excepción y sin agrupar. De cada uno di su nivel de severidad y por qué ese elemento importa en un sistema de ${sistNombre}, SIN describir el tipo de grieta o daño salvo que esté en las observaciones${descripcionFotos ? ' o en las fotografías' : ''}. ${descripcionFotos ? 'Integra lo observado en las fotografías, indicando que proviene del registro fotográfico.' : ''}
    - Párrafo 3: Qué significa el concepto "${concepto}" en términos prácticos para los ocupantes.
 
 2. RECOMENDACIONES (escribe exactamente la palabra "RECOMENDACIONES:" como separador):
@@ -1342,16 +1351,17 @@ INSTRUCCIONES DE REDACCIÓN — SÍGUELAS CON PRECISIÓN:
 VERIFICACIÓN OBLIGATORIA ANTES DE RESPONDER:
 ${nombresObligatorios.length
   ? `a) ¿Aparecen nombrados en el párrafo 2 TODOS estos elementos? ${nombresObligatorios.map(n=>'"'+n+'"').join(', ')}. Si falta alguno, reescribe el párrafo.
-b) ¿Mencionaste algún daño que NO esté en las listas [S] y [L]? Si sí, elimínalo.`
+b) ¿Mencionaste algún elemento que NO esté en las listas [S] y [L]? Si sí, elimínalo.
+c) ¿Describiste algún tipo de grieta, patrón de daño, ancho o ubicación que NO aparezca en las observaciones${descripcionFotos ? ' ni en el análisis de fotografías' : ''}? Si sí, bórralo: te lo estás inventando.`
   : `a) Las listas de hallazgos están vacías: NO describas ningún daño. Indica que no se identificaron daños que comprometan la seguridad y limita las recomendaciones a monitoreo y verificación durante las réplicas.`}
-c) ¿El texto sirve igual para cualquier otro edificio? Si sí, es demasiado genérico: reescríbelo con los datos concretos de este caso.
+d) ¿El texto sirve igual para cualquier otro edificio? Si sí, es demasiado genérico: reescríbelo con los datos concretos de este caso.
 
 REGLAS ABSOLUTAS:
 - Sin markdown, sin asteriscos, sin negritas, sin guiones decorativos, sin títulos.
 - Texto plano con párrafos separados por línea en blanco.
 - No digas que el informe fue elaborado por un especialista en estructuras.
 - No repitas los datos del encabezado ni cites los códigos [S1], [L1], [M1] en el texto final.
-- No inventes daños, mediciones, anchos de fisura ni ubicaciones que no estén en los datos entregados.
+- No inventes daños, tipos de grieta, mediciones, anchos de fisura ni ubicaciones que no estén en los datos entregados.
 - Tono profesional, directo, empático. Es una situación de emergencia.`;
 
   try {
@@ -1444,7 +1454,7 @@ function prepararInforme() {
       hayDano = true;
       const tc = v==='Severo' ? 'cr' : 'ca';
       const tt = v==='Severo' ? 'Severo / Crítico' : 'Leve / Superficial';
-      tbody.innerHTML += `<tr><td><strong>${item.n}</strong><br><span style="font-size:7.5pt;color:#64748b">${item.d}</span></td><td><span class="ptag ${item.c?'est':'noest'}">${item.c?'Estructural':'No estruct.'}</span></td><td><span class="ptag ${tc}">${tt}</span></td></tr>`;
+      tbody.innerHTML += `<tr><td><strong>${item.n}</strong></td><td><span class="ptag ${item.c?'est':'noest'}">${item.c?'Estructural':'No estruct.'}</span></td><td><span class="ptag ${tc}">${tt}</span></td></tr>`;
     }
   });
   if (!hayDano) tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:#16a34a;padding:12px;font-weight:700">✅ Sin daños detectados en ningún elemento evaluado</td></tr>';
@@ -1455,10 +1465,13 @@ function prepararInforme() {
 
   if (fotosData.length > 0) {
     const grid = document.getElementById('pdf-foto-grid');
-    // Siempre 3 celdas: así una o dos fotos no se estiran a todo el ancho.
-    let celdas = fotosData.map((f,i) => `<td style="width:33.33%;padding:0 4px;vertical-align:top"><div class="pdf-foto-item"><img src="${f.base64}"><div class="pdf-foto-cap">Foto ${i+1}</div></div></td>`);
-    while (celdas.length < 3) celdas.push('<td style="width:33.33%;padding:0 4px"></td>');
-    grid.innerHTML = '<tr>' + celdas.join('') + '</tr>';
+    // Filas de 3, rellenando siempre las 3 celdas para que una o dos fotos no se
+    // estiren a todo el ancho de la hoja.
+    const celdas = fotosData.map((f,i) => `<td style="width:33.33%;padding:0 4px 6px;vertical-align:top"><div class="pdf-foto-item"><img src="${f.base64}"><div class="pdf-foto-cap">Foto ${i+1}</div></div></td>`);
+    while (celdas.length % 3 !== 0) celdas.push('<td style="width:33.33%;padding:0 4px 6px"></td>');
+    let filas = '';
+    for (let i = 0; i < celdas.length; i += 3) filas += '<tr>' + celdas.slice(i, i+3).join('') + '</tr>';
+    grid.innerHTML = filas;
     document.getElementById('pdf-fotos-sec').style.display = 'block';
   } else {
     document.getElementById('pdf-fotos-sec').style.display = 'none';
