@@ -457,7 +457,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
   <div id="pdf-narrativa-sec" style="display:none;margin-bottom:12px">
     <div class="pdf-narrativa">
-      <h3 id="pdf-narrativa-h3">Análisis Técnico — Generado con IA</h3>
+      <h3>Análisis técnico a partir de la inspección visual</h3>
       <div id="pdf-narrativa-txt" class="pdf-narrativa-txt"></div>
     </div>
   </div>
@@ -791,7 +791,6 @@ let estadoItems = {};
 let narrativaIA = '';
 let recomendacionesIA = '';
 let fotosAnalizadasIA = 0;
-let generadoConIA = false;
 let geminiKey = '';
 let geminiModel = 'gemini-3.1-flash-lite';
 const fotosData = [];
@@ -1079,7 +1078,6 @@ function calcularYVer() {
   mostrarConcepto(r);
   document.getElementById('fotos-estado').style.display = 'none';
   narrativaIA = ''; recomendacionesIA = ''; fotosAnalizadasIA = 0;
-  generadoConIA = false;
   document.getElementById('narrativa-edit').value = '';
   document.getElementById('recom-edit').value = '';
   mostrarEditorAnalisis(false);
@@ -1381,7 +1379,6 @@ REGLAS ABSOLUTAS:
     narrativaIA = partes[0].trim();
     recomendacionesIA = partes[1] ? partes[1].trim() : '';
     fotosAnalizadasIA = fotosAnalizadas;
-    generadoConIA = true;
     document.getElementById('narrativa-edit').value = narrativaIA;
     document.getElementById('recom-edit').value = recomendacionesIA;
     mostrarEditorAnalisis(true);
@@ -1526,18 +1523,6 @@ function prepararInforme() {
     document.getElementById('pdf-fotos-sec').style.display = 'block';
   } else {
     document.getElementById('pdf-fotos-sec').style.display = 'none';
-  }
-
-  // La lectura de las fotos alimenta el análisis técnico; no se imprime aparte.
-  const cab = document.getElementById('pdf-narrativa-h3');
-  if (cab) {
-    if (!generadoConIA) {
-      cab.textContent = 'Análisis Técnico';
-    } else {
-      const editado = textoAnalisis !== narrativaIA.trim() || textoRecom !== recomendacionesIA.trim();
-      const fotos = fotosAnalizadasIA ? ` (incluye lectura de ${fotosAnalizadasIA} fotografía${fotosAnalizadasIA>1?'s':''})` : '';
-      cab.textContent = 'Análisis Técnico — Generado con IA' + (editado ? ' y revisado por el evaluador' : '') + fotos;
-    }
   }
 
   return r;
